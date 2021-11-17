@@ -8,7 +8,8 @@ public enum DbColumnType {
     TEXT("Текст"),
     DATE("Дата"),
     NUMBER("Целое число"),
-    DECIMAL("Дробное число");
+    DECIMAL("Дробное число"),
+    BOOLEAN("Булево значение");
 
     String type;
 

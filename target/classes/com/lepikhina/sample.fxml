@@ -53,7 +53,7 @@
                      <bottom>
                         <ButtonBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                           <buttons>
-                            <Button mnemonicParsing="false" text="Button" />
+                            <Button mnemonicParsing="false" text="Обезличить" />
                           </buttons>
                         </ButtonBar>
                      </bottom>

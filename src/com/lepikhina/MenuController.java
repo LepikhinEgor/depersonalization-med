@@ -92,7 +92,8 @@ public class MenuController implements Initializable {
     @EventListener(ColumnSelectedEvent.class)
     public void onColumnSelected(ColumnSelectedEvent event) {
         DepersonalizationColumn newRow = new DepersonalizationColumn(event.getDbColumn());
-        actionsTable.getItems().addAll(newRow);
+        if (!actionsTable.getItems().contains(newRow))
+            actionsTable.getItems().addAll(newRow);
     }
 
     private TreeItem<SchemaItem> tableAsNode(DbTable table) {
@@ -103,11 +104,6 @@ public class MenuController implements Initializable {
                         .collect(Collectors.toList())
         );
 
-//        TableColumn emailCol = new TableColumn("Email");
-//        emailCol.setMinWidth(200);
-//        emailCol.setCellValueFactory(
-//                new PropertyValueFactory<Person,String>("email")
-//        );
         return tableNode;
     }
 }

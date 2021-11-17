@@ -29,9 +29,10 @@ import org.springframework.stereotype.Service;
 public class DatabaseService {
 
     private List<String> numberTypes = Arrays.asList("bigint", "integer");
-    private List<String> timeTypes = Arrays.asList("timestamp without time zone");
-    private List<String> booleanTypes = Arrays.asList("boolean");
-    private List<String> textTypes = Arrays.asList("character varying");
+    private List<String> decimalTypes = Collections.singletonList("numeric");
+    private List<String> timeTypes = Arrays.asList("timestamp with time zone", "timestamp without time zone");
+    private List<String> booleanTypes = Collections.singletonList("boolean");
+    private List<String> textTypes = Arrays.asList("character varying", "text");
 
     public Connection connectDatabase() throws DatabaseConnectException {
         DbConnectionProperties dbConnectionProperties = ConnectionHolder.getConnectionProperties();
@@ -88,7 +89,7 @@ public class DatabaseService {
 
             while (resultSet.next()) {
                 String columnName = resultSet.getString("column_name");
-                String columnType = resultSet.getString("data_type"); //udt_name
+                String columnType = resultSet.getString("udt_name"); //udt_name
 
                 columns.add(new DbColumn(columnName, tableName, getTypeFrom(columnType),"", true));
             }
@@ -104,6 +105,10 @@ public class DatabaseService {
             return DbColumnType.DATE;
         if (numberTypes.contains(columnType))
             return DbColumnType.NUMBER;
+        if (decimalTypes.contains(columnType))
+            return DbColumnType.DECIMAL;
+        if (booleanTypes.contains(columnType))
+            return DbColumnType.BOOLEAN;
 
         return DbColumnType.UNKNOWN;
     }
