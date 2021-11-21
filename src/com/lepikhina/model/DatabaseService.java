@@ -30,7 +30,7 @@ public class DatabaseService {
 
     private List<String> numberTypes = Arrays.asList("bigint", "integer");
     private List<String> decimalTypes = Collections.singletonList("numeric");
-    private List<String> timeTypes = Arrays.asList("timestamp with time zone", "timestamp without time zone");
+    private List<String> timeTypes = Arrays.asList("timestamp with time zone", "timestamp without time zone", "date");
     private List<String> booleanTypes = Collections.singletonList("boolean");
     private List<String> textTypes = Arrays.asList("character varying", "text");
 
@@ -77,6 +77,21 @@ public class DatabaseService {
         return tables;
     }
 
+    public <T> List<T> getColumnValues(String columnName, String tableName, Class<T> type) throws DatabaseConnectException, SQLException {
+        Connection connection = connectDatabase();
+
+        try(PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + tableName)) {
+            ResultSet resultSet = statement.executeQuery();
+
+            List<T> resultList = new ArrayList<>();
+            while (resultSet.next()) {
+                T value = resultSet.getObject(columnName, type);
+                resultList.add(value);
+            }
+            return resultList;
+        }
+    }
+
     private Set<DbColumn> getTableColumns(String tableName) throws SQLException, DatabaseConnectException {
         String getColumnsQuery = "SELECT * FROM information_schema.columns " +
                 "WHERE table_schema = 'public' AND table_name  = ?";
@@ -89,7 +104,7 @@ public class DatabaseService {
 
             while (resultSet.next()) {
                 String columnName = resultSet.getString("column_name");
-                String columnType = resultSet.getString("udt_name"); //udt_name
+                String columnType = resultSet.getString("data_type"); //udt_name
 
                 columns.add(new DbColumn(columnName, tableName, getTypeFrom(columnType),"", true));
             }

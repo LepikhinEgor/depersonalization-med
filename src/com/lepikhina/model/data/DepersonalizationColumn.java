@@ -2,6 +2,7 @@ package com.lepikhina.model.data;
 
 import javafx.scene.control.ComboBox;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -12,58 +13,32 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 @Setter
-//@Getter
-@AllArgsConstructor
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DepersonalizationColumn {
 
-    DbColumn dbColumn;
+    String name;
 
-    public String getName() {
-        return dbColumn.getName();
+    String table;
+
+    String type;
+
+    DbColumnType columnType;
+
+    String foreignKey;
+
+    ComboBox<DepersonalizationAction> actionsBox;
+
+    public DepersonalizationColumn(DbColumn dbColumn, List<DepersonalizationAction> actionList) {
+        this.name = dbColumn.getName();
+        this.table = dbColumn.getTableName();
+        this.type = dbColumn.getType().getType();
+        this.foreignKey = dbColumn.getForeignKey();
+        this.columnType = dbColumn.getType();
+
+        actionsBox = new ComboBox<>();
+        actionsBox.getItems().addAll(actionList);
+        actionsBox.setValue(actionList.get(0));
     }
 
-    public String getTable() {
-        return dbColumn.getTableName();
-    }
-
-    public String getType() {
-        return dbColumn.getType().getType();
-    }
-
-    public String getForeignKey() {
-        return dbColumn.getForeignKey();
-    }
-
-    public ComboBox<DepersonalizationAction> getActionName() {
-        ComboBox<DepersonalizationAction> actionsList = new ComboBox<>();
-        DepersonalizationAction<String> randomString = new DepersonalizationAction<String>() {
-            @Override
-            public String depersonalize(String inputData) {
-                return UUID.randomUUID().toString();
-            }
-
-            @Override
-            public String getName() {
-                return "Случайный UUID";
-            }
-        };
-        actionsList.getItems().add(randomString);
-
-        return actionsList;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DepersonalizationColumn that = (DepersonalizationColumn) o;
-        return Objects.equals(dbColumn.getName(), that.dbColumn.getName()) &&
-                Objects.equals(dbColumn.getTableName(), that.dbColumn.getTableName());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(dbColumn.getName(), dbColumn.getTableName());
-    }
 }

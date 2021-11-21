@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Случайный UUID",
+    "scriptPath": "src/com/lepikhina/model/scripts/randomUuid.groovy",
+    "suitableType": "TEXT"
+  },
+  {
+    "name": "Случайная строка",
+    "scriptPath": "src/com/lepikhina/model/scripts/randomString.groovy",
+    "suitableType": "TEXT"
+  }
+]

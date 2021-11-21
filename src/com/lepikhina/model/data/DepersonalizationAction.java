@@ -1,13 +1,23 @@
 package com.lepikhina.model.data;
 
-public abstract class DepersonalizationAction<T> {
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
-    public abstract T depersonalize(T inputData);
+@Getter
+@Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class DepersonalizationAction {
 
-    public abstract String getName();
+    String name;
+
+    String scriptPath;
+
+    DbColumnType suitableType;
 
     @Override
     public String toString() {
-        return getName();
+        return name;
     }
 }
