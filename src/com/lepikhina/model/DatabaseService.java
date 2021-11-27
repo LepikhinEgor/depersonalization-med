@@ -1,27 +1,17 @@
 package com.lepikhina.model;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.lepikhina.model.data.DbColumn;
 import com.lepikhina.model.data.DbColumnType;
 import com.lepikhina.model.data.DbTable;
+import com.lepikhina.model.data.TableRow;
 import com.lepikhina.model.exceptions.DatabaseConnectException;
 import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+
+import java.sql.*;
+import java.util.*;
 
 @Service
 //@RequiredArgsConstructor
@@ -34,11 +24,20 @@ public class DatabaseService {
     private List<String> booleanTypes = Collections.singletonList("boolean");
     private List<String> textTypes = Arrays.asList("character varying", "text");
 
+    private static final String SELECT_PK_QUERRY = "SELECT pg_attribute.attname \n" +
+            "FROM pg_index, pg_class, pg_attribute, pg_namespace \n" +
+            "WHERE \n" +
+            "  pg_class.oid = ?::regclass AND \n" +
+            "  indrelid = pg_class.oid AND \n" +
+            "  nspname = 'public' AND \n" +
+            "  pg_class.relnamespace = pg_namespace.oid AND \n" +
+            "  pg_attribute.attrelid = pg_class.oid AND \n" +
+            "  pg_attribute.attnum = any(pg_index.indkey)\n" +
+            " AND indisprimary";
+
     public Connection connectDatabase() throws DatabaseConnectException {
         DbConnectionProperties dbConnectionProperties = ConnectionHolder.getConnectionProperties();
-        dbConnectionProperties = new DbConnectionProperties();
-        dbConnectionProperties.setProperties("jdbc:postgresql://localhost:5432/", "dsa",
-                "postgres", "postgres");
+
         try {
             return DriverManager.getConnection(
                     dbConnectionProperties.getUrl() + dbConnectionProperties.getDatabaseName(),
@@ -66,7 +65,9 @@ public class DatabaseService {
                 String tableName = resultSet.getString("table_name");
                 Set<DbColumn> columns = getTableColumns(tableName);
 
-                tables.add(new DbTable(tableName, columns));
+                Set<String> primaryKeys = getTablePrimaryKeys(tableName, connection);
+
+                tables.add(new DbTable(tableName, primaryKeys, columns));
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -77,19 +78,55 @@ public class DatabaseService {
         return tables;
     }
 
-    public <T> List<T> getColumnValues(String columnName, String tableName, Class<T> type) throws DatabaseConnectException, SQLException {
+    public <T> List<TableRow<T>> getColumnValues(String columnName,
+                                       String tableName,
+                                       List<String> idColumns,
+                                       Class<T> type,
+                                       int pageNum) throws DatabaseConnectException, SQLException {
         Connection connection = connectDatabase();
 
         try(PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + tableName)) {
             ResultSet resultSet = statement.executeQuery();
 
-            List<T> resultList = new ArrayList<>();
+            List<TableRow<T>> resultList = new ArrayList<>();
             while (resultSet.next()) {
                 T value = resultSet.getObject(columnName, type);
-                resultList.add(value);
+                List<Object> idValues = new ArrayList<>();
+                for (String idColumn : idColumns) {
+                    idValues.add(resultSet.getObject(idColumn));
+                }
+
+                resultList.add(new TableRow<>(value, idValues));
             }
             return resultList;
         }
+    }
+
+    public <T> void updateColumnValues(String columnName,
+                                                 String tableName,
+                                   List<TableRow<T>> values,
+                                                 List<String> idColumns) throws DatabaseConnectException, SQLException {
+        Connection connection = connectDatabase();
+
+        String query = generateUpdateRowQuery(columnName, tableName, idColumns);
+        try(PreparedStatement statement = connection.prepareStatement(query)) {
+            for (int i = 0; i < idColumns.size(); i++) {
+                statement.setObject(i + 1, values.get(i));
+            }
+            long i = statement.executeUpdate();
+
+            if (i == 0)
+                throw new RuntimeException();
+        }
+    }
+
+    private String generateUpdateRowQuery(String columnName, String tableName, List<String> idColumns) {
+        String prefix =  "UPDATE " + tableName + "SET " + columnName + " = ? WHERE ";
+
+        StringJoiner joiner = new StringJoiner( "= ? AND ", prefix, ";");
+        idColumns.forEach(joiner::add);
+
+        return joiner.toString();
     }
 
     private Set<DbColumn> getTableColumns(String tableName) throws SQLException, DatabaseConnectException {
@@ -111,6 +148,22 @@ public class DatabaseService {
         }
 
         return columns;
+    }
+
+
+    private Set<String> getTablePrimaryKeys(String tableName, Connection connection) throws SQLException {
+        Set<String> pkColumnNames = new HashSet<>();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_PK_QUERRY)) {
+            preparedStatement.setString(1, tableName);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                String columnName = resultSet.getString("attname");
+                pkColumnNames.add(columnName);
+            }
+        }
+
+        return pkColumnNames;
     }
 
     private DbColumnType getTypeFrom(String columnType) {

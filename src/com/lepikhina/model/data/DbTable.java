@@ -11,5 +11,7 @@ public class DbTable {
 
     String name;
 
+    Set<String> pkColumnKeys;
+
     Set<DbColumn> columns;
 }
