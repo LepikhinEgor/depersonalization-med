@@ -1,5 +1,6 @@
 package com.lepikhina;
 
+import com.lepikhina.model.data.*;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,18 +19,11 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 import java.sql.Date;
-import java.util.Collection;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.lepikhina.model.ConnectionHolder;
 import com.lepikhina.model.DatabaseService;
-import com.lepikhina.model.data.ActionsHolder;
-import com.lepikhina.model.data.DbColumnType;
-import com.lepikhina.model.data.DbTable;
-import com.lepikhina.model.data.DepersonalizationAction;
-import com.lepikhina.model.data.DepersonalizationColumn;
 import com.lepikhina.model.events.ColumnSelectedEvent;
 import com.lepikhina.model.events.DbConnectEvent;
 import com.lepikhina.model.events.EventBus;
@@ -121,13 +115,16 @@ public class MenuController implements Initializable {
     @FXML
     @SneakyThrows
     public void executeDepersonalize(ActionEvent event) {
-        ObservableList<DepersonalizationColumn> actions = actionsTable.getItems();
+        ObservableList<DepersonalizationColumn> rows = actionsTable.getItems();
         DatabaseService databaseService = new DatabaseService();
 
-        for (DepersonalizationColumn action : actions) {
-            Class<?> columnType = getTypeFrom(action.getColumnType());
-            List<?> columnValues = databaseService.getColumnValues(action.getName(), action.getTable(), columnType);
-            columnValues.forEach(System.out::println);
+        for (DepersonalizationColumn row : rows) {
+            Class<?> columnType = getTypeFrom(row.getColumnType());
+            DepersonalizationAction action = row.getActionsBox().getSelected();
+            ScriptAnonymizer scriptAnonymizer = new ScriptAnonymizer(action.getScriptPath());
+
+            List<String> pkColumnKeys = new ArrayList<>(row.getDbColumn().getTable().getPkColumnKeys());
+            databaseService.depersonalizeColumn(row.getName(), row.getTable(), pkColumnKeys, columnType, scriptAnonymizer);
         }
     }
 

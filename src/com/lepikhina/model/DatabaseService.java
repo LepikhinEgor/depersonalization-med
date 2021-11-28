@@ -1,9 +1,6 @@
 package com.lepikhina.model;
 
-import com.lepikhina.model.data.DbColumn;
-import com.lepikhina.model.data.DbColumnType;
-import com.lepikhina.model.data.DbTable;
-import com.lepikhina.model.data.TableRow;
+import com.lepikhina.model.data.*;
 import com.lepikhina.model.exceptions.DatabaseConnectException;
 import lombok.AccessLevel;
 import lombok.SneakyThrows;
@@ -12,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 //@RequiredArgsConstructor
@@ -23,6 +21,9 @@ public class DatabaseService {
     private List<String> timeTypes = Arrays.asList("timestamp with time zone", "timestamp without time zone", "date");
     private List<String> booleanTypes = Collections.singletonList("boolean");
     private List<String> textTypes = Arrays.asList("character varying", "text");
+
+    private final Integer BATCH_SIZE = 100;
+
 
     private static final String SELECT_PK_QUERRY = "SELECT pg_attribute.attname \n" +
             "FROM pg_index, pg_class, pg_attribute, pg_namespace \n" +
@@ -62,12 +63,16 @@ public class DatabaseService {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
+                DbTable table = new DbTable();
                 String tableName = resultSet.getString("table_name");
-                Set<DbColumn> columns = getTableColumns(tableName);
 
                 Set<String> primaryKeys = getTablePrimaryKeys(tableName, connection);
 
-                tables.add(new DbTable(tableName, primaryKeys, columns));
+                table.setName(tableName);
+                table.setPkColumnKeys(primaryKeys);
+                table.setColumns(getTableColumns(table));
+
+                tables.add(table);
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -78,14 +83,36 @@ public class DatabaseService {
         return tables;
     }
 
-    public <T> List<TableRow<T>> getColumnValues(String columnName,
+    public <T> void depersonalizeColumn(String columnName,
+                                        String tableName,
+                                        List<String> idColumns,
+                                        Class<T> type, Anonymizer anonymizer) throws DatabaseConnectException, SQLException {
+        int offset = 0;
+        while (true) {
+            List<TableRow<T>> oldValues = getColumnValues(columnName, tableName, idColumns, type, offset);
+
+            List<TableRow<T>> newValues = anonymizer.anonymize(oldValues);
+
+            updateColumnValues(columnName, tableName, newValues, idColumns);
+
+            offset += BATCH_SIZE;
+            if (oldValues.size() < BATCH_SIZE)
+                break;
+        }
+
+    }
+
+    private <T> List<TableRow<T>> getColumnValues(String columnName,
                                        String tableName,
                                        List<String> idColumns,
                                        Class<T> type,
-                                       int pageNum) throws DatabaseConnectException, SQLException {
+                                       long offset) throws DatabaseConnectException, SQLException {
         Connection connection = connectDatabase();
 
-        try(PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + tableName)) {
+        String query = "SELECT * FROM " + tableName +
+                " ORDER BY " + String.join(",", idColumns) +
+                " LIMIT " + BATCH_SIZE + " OFFSET " + offset;
+        try(PreparedStatement statement = connection.prepareStatement(query)) {
             ResultSet resultSet = statement.executeQuery();
 
             List<TableRow<T>> resultList = new ArrayList<>();
@@ -102,7 +129,7 @@ public class DatabaseService {
         }
     }
 
-    public <T> void updateColumnValues(String columnName,
+    private <T> void updateColumnValues(String columnName,
                                                  String tableName,
                                    List<TableRow<T>> values,
                                                  List<String> idColumns) throws DatabaseConnectException, SQLException {
@@ -110,13 +137,25 @@ public class DatabaseService {
 
         String query = generateUpdateRowQuery(columnName, tableName, idColumns);
         try(PreparedStatement statement = connection.prepareStatement(query)) {
-            for (int i = 0; i < idColumns.size(); i++) {
-                statement.setObject(i + 1, values.get(i));
-            }
-            long i = statement.executeUpdate();
+            for (TableRow<T> value : values) {
+                statement.setObject(1, value);
+                for (int i = 0; i < idColumns.size(); i++) {
+                    statement.setObject(i + 1, value.getIds().get(i));
+                }
 
-            if (i == 0)
-                throw new RuntimeException();
+                statement.addBatch();
+            }
+
+            int[] results = statement.executeBatch();
+
+            for (int i = 0; i < results.length; i++) {
+                if (results[i] == 0) {
+                    String ids = values.get(i).getIds().stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining(","));
+                    System.out.println("Row with id="+ ids + " not found");
+                }
+            }
         }
     }
 
@@ -129,21 +168,21 @@ public class DatabaseService {
         return joiner.toString();
     }
 
-    private Set<DbColumn> getTableColumns(String tableName) throws SQLException, DatabaseConnectException {
+    private Set<DbColumn> getTableColumns(DbTable table) throws SQLException, DatabaseConnectException {
         String getColumnsQuery = "SELECT * FROM information_schema.columns " +
                 "WHERE table_schema = 'public' AND table_name  = ?";
 
         Set<DbColumn> columns = new HashSet<>();
         Connection connection = connectDatabase();
         try (PreparedStatement preparedStatement = connection.prepareStatement(getColumnsQuery)) {
-            preparedStatement.setString(1, tableName);
+            preparedStatement.setString(1, table.getName());
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
                 String columnName = resultSet.getString("column_name");
                 String columnType = resultSet.getString("data_type"); //udt_name
 
-                columns.add(new DbColumn(columnName, tableName, getTypeFrom(columnType),"", true));
+                columns.add(new DbColumn(columnName, table, getTypeFrom(columnType),"", true));
             }
         }
 

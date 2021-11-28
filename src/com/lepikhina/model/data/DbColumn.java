@@ -9,7 +9,7 @@ public class DbColumn {
 
     String name;
 
-    String tableName;
+    DbTable table;
 
     DbColumnType type;
 

@@ -12,11 +12,11 @@ public class ScriptsExecutor {
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
-    public static  <T> T executeScript(String scriptPath, List<T> oldValues) {
+    public static  <T> List<T> executeScript(String scriptPath, List<T> oldValues) {
         Binding binding = new Binding();
         binding.setVariable("oldValues", oldValues);
         GroovyShell shell = new GroovyShell(binding);
 
-        return (T)shell.evaluate(new File(scriptPath));
+        return (List<T>)shell.evaluate(new File(scriptPath));
     }
 }
