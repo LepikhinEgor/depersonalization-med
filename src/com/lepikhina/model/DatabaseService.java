@@ -1,29 +1,36 @@
 package com.lepikhina.model;
 
-import com.lepikhina.model.data.*;
+import groovy.util.logging.Log4j;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
+
+import com.lepikhina.model.data.Anonymizer;
+import com.lepikhina.model.data.DbColumn;
+import com.lepikhina.model.data.DbColumnType;
+import com.lepikhina.model.data.DbTable;
+import com.lepikhina.model.data.TableRow;
 import com.lepikhina.model.exceptions.DatabaseConnectException;
 import lombok.AccessLevel;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.sql.*;
-import java.util.*;
-import java.util.stream.Collectors;
-
-@Service
-//@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DatabaseService {
-
-    private List<String> numberTypes = Arrays.asList("bigint", "integer");
-    private List<String> decimalTypes = Collections.singletonList("numeric");
-    private List<String> timeTypes = Arrays.asList("timestamp with time zone", "timestamp without time zone", "date");
-    private List<String> booleanTypes = Collections.singletonList("boolean");
-    private List<String> textTypes = Arrays.asList("character varying", "text");
-
-    private final Integer BATCH_SIZE = 100;
-
 
     private static final String SELECT_PK_QUERRY = "SELECT pg_attribute.attname \n" +
             "FROM pg_index, pg_class, pg_attribute, pg_namespace \n" +
@@ -35,13 +42,27 @@ public class DatabaseService {
             "  pg_attribute.attrelid = pg_class.oid AND \n" +
             "  pg_attribute.attnum = any(pg_index.indkey)\n" +
             " AND indisprimary";
+    private final Integer BATCH_SIZE = 100;
+    private List<String> numberTypes = Arrays.asList("bigint", "integer");
+    private List<String> decimalTypes = Collections.singletonList("numeric");
+    private List<String> timeTypes = Arrays.asList("timestamp with time zone", "timestamp without time zone", "date");
+    private List<String> booleanTypes = Collections.singletonList("boolean");
+    private List<String> textTypes = Arrays.asList("character varying", "text");
+
+    public boolean isConnectionCorrect() {
+        try(Connection connection = connectDatabase()) {
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     public Connection connectDatabase() throws DatabaseConnectException {
         DbConnectionProperties dbConnectionProperties = ConnectionHolder.getConnectionProperties();
 
         try {
             return DriverManager.getConnection(
-                    dbConnectionProperties.getUrl() + dbConnectionProperties.getDatabaseName(),
+                    dbConnectionProperties.getUrl() + "/" + dbConnectionProperties.getDatabaseName(),
                     dbConnectionProperties.getUsername(),
                     dbConnectionProperties.getPassword()
             );
@@ -58,8 +79,8 @@ public class DatabaseService {
                 "  AND table_schema='public' ORDER BY table_name";
 
         Set<DbTable> tables = new HashSet<>();
-        Connection connection = connectDatabase();
-        try (PreparedStatement preparedStatement = connection.prepareStatement(getTablesQuery)) {
+        try (Connection connection = connectDatabase();
+             PreparedStatement preparedStatement = connection.prepareStatement(getTablesQuery)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
@@ -76,10 +97,7 @@ public class DatabaseService {
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
-        } finally {
-            connection.close();
         }
-
         return tables;
     }
 
@@ -103,16 +121,16 @@ public class DatabaseService {
     }
 
     private <T> List<TableRow<T>> getColumnValues(String columnName,
-                                       String tableName,
-                                       List<String> idColumns,
-                                       Class<T> type,
-                                       long offset) throws DatabaseConnectException, SQLException {
-        Connection connection = connectDatabase();
+                                                  String tableName,
+                                                  List<String> idColumns,
+                                                  Class<T> type,
+                                                  long offset) throws DatabaseConnectException, SQLException {
 
         String query = "SELECT * FROM " + tableName +
                 " ORDER BY " + String.join(",", idColumns) +
                 " LIMIT " + BATCH_SIZE + " OFFSET " + offset;
-        try(PreparedStatement statement = connection.prepareStatement(query)) {
+        try (Connection connection = connectDatabase();
+             PreparedStatement statement = connection.prepareStatement(query)) {
             ResultSet resultSet = statement.executeQuery();
 
             List<TableRow<T>> resultList = new ArrayList<>();
@@ -130,17 +148,17 @@ public class DatabaseService {
     }
 
     private <T> void updateColumnValues(String columnName,
-                                                 String tableName,
-                                   List<TableRow<T>> values,
-                                                 List<String> idColumns) throws DatabaseConnectException, SQLException {
+                                        String tableName,
+                                        List<TableRow<T>> values,
+                                        List<String> idColumns) throws DatabaseConnectException, SQLException {
         Connection connection = connectDatabase();
 
         String query = generateUpdateRowQuery(columnName, tableName, idColumns);
-        try(PreparedStatement statement = connection.prepareStatement(query)) {
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
             for (TableRow<T> value : values) {
-                statement.setObject(1, value);
+                statement.setObject(1, value.getValue());
                 for (int i = 0; i < idColumns.size(); i++) {
-                    statement.setObject(i + 1, value.getIds().get(i));
+                    statement.setObject(i + 2, value.getIds().get(i));
                 }
 
                 statement.addBatch();
@@ -153,16 +171,18 @@ public class DatabaseService {
                     String ids = values.get(i).getIds().stream()
                             .map(Object::toString)
                             .collect(Collectors.joining(","));
-                    System.out.println("Row with id="+ ids + " not found");
+                    System.out.println("Row with id=" + ids + " not found");
                 }
             }
         }
     }
 
     private String generateUpdateRowQuery(String columnName, String tableName, List<String> idColumns) {
-        String prefix =  "UPDATE " + tableName + "SET " + columnName + " = ? WHERE ";
+        String prefix = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE ";
 
-        StringJoiner joiner = new StringJoiner( "= ? AND ", prefix, ";");
+        if (idColumns.size() == 1)
+            return prefix + idColumns.get(0) + "= ?;";
+        StringJoiner joiner = new StringJoiner("= ? AND ", prefix, ";");
         idColumns.forEach(joiner::add);
 
         return joiner.toString();
@@ -182,7 +202,7 @@ public class DatabaseService {
                 String columnName = resultSet.getString("column_name");
                 String columnType = resultSet.getString("data_type"); //udt_name
 
-                columns.add(new DbColumn(columnName, table, getTypeFrom(columnType),"", true));
+                columns.add(new DbColumn(columnName, table, getTypeFrom(columnType), "", true));
             }
         }
 

@@ -14,5 +14,7 @@ public class TableRow<T> {
 
     T value;
 
+//    Class<T> type;
+
     List<Object> ids;
 }

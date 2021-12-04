@@ -9,6 +9,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TreeItem;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 
 import com.lepikhina.model.ConnectionHolder;
 import com.lepikhina.model.DatabaseService;
+import com.lepikhina.model.events.ColumnRemoveEvent;
 import com.lepikhina.model.events.ColumnSelectedEvent;
 import com.lepikhina.model.events.DbConnectEvent;
 import com.lepikhina.model.events.EventBus;
@@ -87,7 +90,8 @@ public class MenuController implements Initializable {
 
         TreeItem<SchemaItem> tableNode = new TreeItem<>(new SchemaItem(ConnectionHolder.getConnectionProperties().getDatabaseName()));
         tableNode.getChildren().addAll(databaseSchema.stream()
-                .map(this::tableAsNode)
+                .sorted(Comparator.comparing(DbTable::getName))
+                .map(this::getTableAsNode)
                 .collect(Collectors.toList()));
         schemaTree.setRoot(tableNode);
     }
@@ -95,21 +99,45 @@ public class MenuController implements Initializable {
     @SneakyThrows
     @EventListener(ColumnSelectedEvent.class)
     public void onColumnSelected(ColumnSelectedEvent event) {
+        if (event.getDbColumn().getType().equals(DbColumnType.UNKNOWN))
+            return;
+
         List<DepersonalizationAction> allActions = ActionsHolder.getInstance().getAllActions();
         DepersonalizationColumn newRow = new DepersonalizationColumn(event.getDbColumn(), allActions);
+
         if (!actionsTable.getItems().contains(newRow))
             actionsTable.getItems().addAll(newRow);
     }
 
-    private TreeItem<SchemaItem> tableAsNode(DbTable table) {
+    @SneakyThrows
+    @EventListener(ColumnRemoveEvent.class)
+    public void onColumnRemove(ColumnRemoveEvent event) {
+        actionsTable.getItems().removeIf(row -> row.equalByColumn(event.getDbColumn()));
+    }
+
+    private TreeItem<SchemaItem> getTableAsNode(DbTable table) {
         TreeItem<SchemaItem> tableNode = new TreeItem<>(new SchemaItem(table));
         tableNode.getChildren().addAll(
                 table.getColumns().stream()
-                        .map(column -> new TreeItem<>(new SchemaItem(column)))
+                        .sorted(Comparator.comparing(DbColumn::getName))
+                        .map(this::getColumnAsNode)
                         .collect(Collectors.toList())
         );
 
         return tableNode;
+    }
+
+    private TreeItem<SchemaItem> getColumnAsNode(DbColumn column) {
+        SchemaItem schemaItem = new SchemaItem(column);
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem addAction = new MenuItem("Добавить");
+        MenuItem removeAction = new MenuItem("Удалить");
+        contextMenu.getItems().addAll(addAction, removeAction);
+        addAction.setOnAction(event -> EventBus.sendEvent(new ColumnSelectedEvent(column)));
+        removeAction.setOnAction(event -> EventBus.sendEvent(new ColumnRemoveEvent(column)));
+        schemaItem.setContextMenu(contextMenu);
+
+        return new TreeItem<>(schemaItem);
     }
 
     @FXML
@@ -120,7 +148,7 @@ public class MenuController implements Initializable {
 
         for (DepersonalizationColumn row : rows) {
             Class<?> columnType = getTypeFrom(row.getColumnType());
-            DepersonalizationAction action = row.getActionsBox().getSelected();
+            DepersonalizationAction action = row.getActionsBox().getValue();
             ScriptAnonymizer scriptAnonymizer = new ScriptAnonymizer(action.getScriptPath());
 
             List<String> pkColumnKeys = new ArrayList<>(row.getDbColumn().getTable().getPkColumnKeys());

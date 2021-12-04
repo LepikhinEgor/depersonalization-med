@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import com.lepikhina.model.data.DbColumn;
+import com.lepikhina.model.data.DbColumnType;
 import com.lepikhina.model.data.DbTable;
 import com.lepikhina.model.events.ColumnSelectedEvent;
 import com.lepikhina.model.events.EventBus;
@@ -31,13 +32,17 @@ public class SchemaItem extends Label {
     public SchemaItem(DbColumn column) {
         super(column.getName());
         dbColumn = column;
-        InputStream tInput = new BufferedInputStream(new FileInputStream("resources/icons/letter-c.png"));
+        String iconPath = "resources/icons/letter-c.png";
+        if (dbColumn.getType().equals(DbColumnType.UNKNOWN)) {
+            iconPath = "resources/icons/letter-c-gray.png";
+        }
+        InputStream tInput = new BufferedInputStream(new FileInputStream(iconPath));
         Image tImage = new Image(tInput);
         setGraphic(new ImageView(tImage));
 
         setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                EventBus.getInstance().sendEvent(new ColumnSelectedEvent(dbColumn));
+            if (event.getClickCount() >= 2) {
+                EventBus.sendEvent(new ColumnSelectedEvent(dbColumn));
             }
         });
     }

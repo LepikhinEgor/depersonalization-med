@@ -3,6 +3,7 @@ package com.lepikhina.model.data;
 import javafx.scene.control.ComboBox;
 
 import java.util.List;
+import java.util.Objects;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,6 +27,11 @@ public class DepersonalizationColumn {
         actionsBox.setValue(actionList.get(0));
     }
 
+    public boolean equalByColumn(DbColumn column) {
+         return Objects.equals(dbColumn.getName(), column.getName()) &&
+                Objects.equals(dbColumn.getTable().getName(), column.getTable().getName());
+    }
+
     public String getName() {
         return dbColumn.getName();
     }
@@ -44,5 +50,19 @@ public class DepersonalizationColumn {
 
     public String getForeignKey() {
         return dbColumn.getForeignKey();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DepersonalizationColumn that = (DepersonalizationColumn) o;
+        return Objects.equals(dbColumn.getName(), that.dbColumn.getName()) &&
+                Objects.equals(dbColumn.getTable(), that.dbColumn.getTable());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dbColumn.getName(), dbColumn.getTable());
     }
 }

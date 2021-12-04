@@ -5,15 +5,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.util.Collection;
-
 import com.lepikhina.model.ConnectionHolder;
 import com.lepikhina.model.DatabaseService;
 import com.lepikhina.model.DbConnectionProperties;
-import com.lepikhina.model.data.DbTable;
 import com.lepikhina.model.events.DbConnectEvent;
 import com.lepikhina.model.events.EventBus;
-import com.lepikhina.model.exceptions.DatabaseConnectException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -43,17 +39,11 @@ public class DbPropertiesController {
         ConnectionHolder.setConnectionProperties(connectionProperties);
 
         DatabaseService databaseService = new DatabaseService();
-        try {
-            Collection<DbTable> databaseSchema = databaseService.getDatabaseSchema();
-            if (!databaseSchema.isEmpty()) {
-                EventBus.getInstance().sendEvent(new DbConnectEvent());
-                closeWindow(event);
-            }
-        } catch (DatabaseConnectException e) {
-            e.printStackTrace();
+
+        if (databaseService.isConnectionCorrect()) {
+            EventBus.sendEvent(new DbConnectEvent());
+            closeWindow(event);
         }
-
-
     }
 
     @FXML

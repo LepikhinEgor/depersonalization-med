@@ -43,8 +43,9 @@ public class EventBus {
     }
 
     @SneakyThrows
-    public void sendEvent(AppEvent event) {
-        List<ListenerMethod> listeners = subscribers.get(event.getClass());
+    public static void sendEvent(AppEvent event) {
+        EventBus eventBus = getInstance();
+        List<ListenerMethod> listeners = eventBus.subscribers.get(event.getClass());
 
         for (ListenerMethod listenerMethod : listeners) {
             Method method = listenerMethod.getMethod();
