@@ -1,15 +1,17 @@
 package com.lepikhina.model;
 
+import com.lepikhina.model.persitstence.DatabaseProperties;
+
 public class ConnectionHolder {
 
-    private static DbConnectionProperties dbConnectionProperties;
+    private static DatabaseProperties databaseProperties;
 
-    public static void setConnectionProperties(DbConnectionProperties properties) {
-        dbConnectionProperties = properties;
+    public static void setConnectionProperties(DatabaseProperties properties) {
+        databaseProperties = properties;
     }
 
-    public static DbConnectionProperties getConnectionProperties() {
-        return dbConnectionProperties;
+    public static DatabaseProperties getConnectionProperties() {
+        return databaseProperties;
     }
 
 }

@@ -10,6 +10,7 @@
           <Menu mnemonicParsing="false" text="Подключение">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#openConnectionWindow" text="Подключиться к базе" />
+                  <MenuItem mnemonicParsing="false" onAction="#sendDBDisconnectedEvent" text="Отключиться" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">

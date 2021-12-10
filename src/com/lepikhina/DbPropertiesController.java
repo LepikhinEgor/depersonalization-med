@@ -7,9 +7,10 @@ import javafx.stage.Stage;
 
 import com.lepikhina.model.ConnectionHolder;
 import com.lepikhina.model.DatabaseService;
-import com.lepikhina.model.DbConnectionProperties;
+import com.lepikhina.model.persitstence.DatabaseProperties;
 import com.lepikhina.model.events.DbConnectEvent;
 import com.lepikhina.model.events.EventBus;
+import com.lepikhina.model.persitstence.PersistenceManager;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,7 +32,7 @@ public class DbPropertiesController {
 
     @FXML
     public void connect(ActionEvent event) {
-        DbConnectionProperties connectionProperties = new DbConnectionProperties();
+        DatabaseProperties connectionProperties = new DatabaseProperties();
         connectionProperties.setUrl(urlInput.getText());
         connectionProperties.setDatabaseName(dbNameInput.getText());
         connectionProperties.setUsername(loginInput.getText());
@@ -42,6 +43,7 @@ public class DbPropertiesController {
 
         if (databaseService.isConnectionCorrect()) {
             EventBus.sendEvent(new DbConnectEvent());
+            PersistenceManager.saveDatabaseProperties(connectionProperties);
             closeWindow(event);
         }
     }

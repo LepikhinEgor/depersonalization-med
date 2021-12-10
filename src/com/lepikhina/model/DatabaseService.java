@@ -1,7 +1,5 @@
 package com.lepikhina.model;
 
-import groovy.util.logging.Log4j;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -23,11 +21,10 @@ import com.lepikhina.model.data.DbColumnType;
 import com.lepikhina.model.data.DbTable;
 import com.lepikhina.model.data.TableRow;
 import com.lepikhina.model.exceptions.DatabaseConnectException;
+import com.lepikhina.model.persitstence.DatabaseProperties;
 import lombok.AccessLevel;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DatabaseService {
@@ -58,13 +55,13 @@ public class DatabaseService {
     }
 
     public Connection connectDatabase() throws DatabaseConnectException {
-        DbConnectionProperties dbConnectionProperties = ConnectionHolder.getConnectionProperties();
+        DatabaseProperties databaseProperties = ConnectionHolder.getConnectionProperties();
 
         try {
             return DriverManager.getConnection(
-                    dbConnectionProperties.getUrl() + "/" + dbConnectionProperties.getDatabaseName(),
-                    dbConnectionProperties.getUsername(),
-                    dbConnectionProperties.getPassword()
+                    databaseProperties.getUrl() + "/" + databaseProperties.getDatabaseName(),
+                    databaseProperties.getUsername(),
+                    databaseProperties.getPassword()
             );
         } catch (Exception e) {
             throw new DatabaseConnectException();

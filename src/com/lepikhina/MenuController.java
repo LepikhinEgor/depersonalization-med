@@ -28,6 +28,7 @@ import com.lepikhina.model.ConnectionHolder;
 import com.lepikhina.model.DatabaseService;
 import com.lepikhina.model.events.ColumnRemoveEvent;
 import com.lepikhina.model.events.ColumnSelectedEvent;
+import com.lepikhina.model.events.DBDisconnectEvent;
 import com.lepikhina.model.events.DbConnectEvent;
 import com.lepikhina.model.events.EventBus;
 import com.lepikhina.model.events.EventListener;
@@ -75,10 +76,14 @@ public class MenuController implements Initializable {
         Parent root = FXMLLoader.load(
                 MenuController.class.getResource("connection-db-window.fxml"));
         stage.setScene(new Scene(root));
-        stage.setTitle("My modal window");
+        stage.setTitle("Подключение");
         stage.initModality(Modality.WINDOW_MODAL);
-//        stage.initOwner(((MenuItem)event.getSource()).get().getWindow() );
         stage.show();
+    }
+
+    @FXML
+    public void sendDBDisconnectedEvent(ActionEvent event) {
+        EventBus.sendEvent(new DBDisconnectEvent());
     }
 
     @SneakyThrows
@@ -96,7 +101,6 @@ public class MenuController implements Initializable {
         schemaTree.setRoot(tableNode);
     }
 
-    @SneakyThrows
     @EventListener(ColumnSelectedEvent.class)
     public void onColumnSelected(ColumnSelectedEvent event) {
         if (event.getDbColumn().getType().equals(DbColumnType.UNKNOWN))
@@ -109,10 +113,15 @@ public class MenuController implements Initializable {
             actionsTable.getItems().addAll(newRow);
     }
 
-    @SneakyThrows
     @EventListener(ColumnRemoveEvent.class)
     public void onColumnRemove(ColumnRemoveEvent event) {
         actionsTable.getItems().removeIf(row -> row.equalByColumn(event.getDbColumn()));
+    }
+
+    @EventListener(DBDisconnectEvent.class)
+    public void onDbDisconnected(DBDisconnectEvent event) {
+        actionsTable.getItems().clear();
+        schemaTree.setRoot(null);
     }
 
     private TreeItem<SchemaItem> getTableAsNode(DbTable table) {
