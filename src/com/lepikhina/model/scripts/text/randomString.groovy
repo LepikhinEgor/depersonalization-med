@@ -1,4 +1,4 @@
-package com.lepikhina.model.scripts
+package com.lepikhina.model.scripts.text
 
 String alphabet = "abcdefghijklmnopqrstuvxyz"
 

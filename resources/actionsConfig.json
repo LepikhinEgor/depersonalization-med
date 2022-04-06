@@ -1,12 +1,32 @@
 [
   {
-    "name": "Случайный UUID",
-    "scriptPath": "src/com/lepikhina/model/scripts/randomUuid.groovy",
+    "name": "ФИО",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/randomFio.groovy",
+    "suitableType": "TEXT"
+  },
+  {
+    "name": "Мобильный телефон",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/mobilePhone.groovy",
+    "suitableType": "TEXT"
+  },
+  {
+    "name": "Домашний телефон",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/homePhone.groovy",
+    "suitableType": "TEXT"
+  },
+  {
+    "name": "Адрес",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/address.groovy",
+    "suitableType": "TEXT"
+  },
+  {
+    "name": "Email",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/email.groovy",
     "suitableType": "TEXT"
   },
   {
     "name": "Случайная строка",
-    "scriptPath": "src/com/lepikhina/model/scripts/randomString.groovy",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/randomString.groovy",
     "suitableType": "TEXT"
   }
 ]

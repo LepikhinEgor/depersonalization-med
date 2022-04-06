@@ -10,6 +10,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -55,6 +56,7 @@ public class MenuController implements Initializable {
 
     @FXML
     public Button executeBtn;
+    public Label successLabel;
 
     public MenuController() {
         EventBus.getInstance().addListener(this);
@@ -152,6 +154,8 @@ public class MenuController implements Initializable {
     @FXML
     @SneakyThrows
     public void executeDepersonalize(ActionEvent event) {
+        successLabel.setVisible(false);
+
         ObservableList<DepersonalizationColumn> rows = actionsTable.getItems();
         DatabaseService databaseService = new DatabaseService();
 
@@ -163,6 +167,8 @@ public class MenuController implements Initializable {
             List<String> pkColumnKeys = new ArrayList<>(row.getDbColumn().getTable().getPkColumnKeys());
             databaseService.depersonalizeColumn(row.getName(), row.getTable(), pkColumnKeys, columnType, scriptAnonymizer);
         }
+
+        successLabel.setVisible(true);
     }
 
     private Class<?> getTypeFrom(DbColumnType columnType) {
