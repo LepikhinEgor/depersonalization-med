@@ -1,8 +1,11 @@
 package com.lepikhina.model.data;
 
+import javafx.event.EventType;
 import javafx.scene.control.ComboBox;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import lombok.AccessLevel;
@@ -19,12 +22,18 @@ public class DepersonalizationColumn {
 
     ComboBox<DepersonalizationAction> actionsBox;
 
+    HashMap<String, Object> variables;
+
     public DepersonalizationColumn(DbColumn dbColumn, List<DepersonalizationAction> actionList) {
         this.dbColumn = dbColumn;
 
         actionsBox = new ComboBox<>();
         actionsBox.getItems().addAll(actionList);
-        actionsBox.setValue(actionList.get(0));
+        DepersonalizationAction currentAction = actionList.get(0);
+        actionsBox.setValue(currentAction);
+//        actionsBox.addEventFilter(EventType.ROOT, event -> ); //TODO
+        variables = new HashMap<>();
+        currentAction.getVariables().forEach(variable -> variables.put(variable.getVarName(), variable.defaultValue));
     }
 
     public boolean equalByColumn(DbColumn column) {

@@ -2,31 +2,83 @@
   {
     "name": "ФИО",
     "scriptPath": "src/com/lepikhina/model/scripts/text/randomFio.groovy",
-    "suitableType": "TEXT"
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Имя",
+        "varName": "needName",
+        "type": "BOOLEAN",
+        "defaultValue": true
+      },
+      {
+        "name": "Фамилия",
+        "varName": "needSurname",
+        "type": "BOOLEAN",
+        "defaultValue": true
+      },
+      {
+        "name": "Отчество",
+        "varName": "needFatherName",
+        "type": "BOOLEAN",
+        "defaultValue": true
+      }
+    ]
   },
   {
     "name": "Мобильный телефон",
     "scriptPath": "src/com/lepikhina/model/scripts/text/mobilePhone.groovy",
-    "suitableType": "TEXT"
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Код страны",
+        "varName": "countryCode",
+        "type": "STRING",
+        "defaultValue": 7
+      }
+    ]
   },
   {
     "name": "Домашний телефон",
     "scriptPath": "src/com/lepikhina/model/scripts/text/homePhone.groovy",
-    "suitableType": "TEXT"
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Длина",
+        "varName": "length",
+        "type": "NUMBER",
+        "defaultValue": 6
+      }
+    ]
   },
   {
     "name": "Адрес",
     "scriptPath": "src/com/lepikhina/model/scripts/text/address.groovy",
-    "suitableType": "TEXT"
+    "suitableType": "TEXT",
+    "variables": []
   },
   {
     "name": "Email",
     "scriptPath": "src/com/lepikhina/model/scripts/text/email.groovy",
-    "suitableType": "TEXT"
+    "suitableType": "TEXT",
+    "variables": []
   },
   {
     "name": "Случайная строка",
     "scriptPath": "src/com/lepikhina/model/scripts/text/randomString.groovy",
-    "suitableType": "TEXT"
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Длина",
+        "varName": "length",
+        "type": "NUMBER",
+        "defaultValue": 10
+      },
+      {
+        "name": "Символы",
+        "varName": "alphabet",
+        "type": "STRING",
+        "defaultValue": "abcdefghijklmnopqrstuvxyz"
+      }
+    ]
   }
 ]

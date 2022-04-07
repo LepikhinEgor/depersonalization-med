@@ -1,16 +1,14 @@
 package com.lepikhina.model.scripts.text
 
-String alphabet = "abcdefghijklmnopqrstuvxyz"
-
 List newValues = new ArrayList()
 for (def oldValue: oldValues) {
-    newValues.add(generateString(alphabet, 10))
+    newValues.add(generateString(alphabet, length))
 }
 
 return newValues
 
 
-static String generateString(String characters, int length)
+static String generateString(String characters, def length)
 {
     Random random = new Random()
     char[] text = new char[length];

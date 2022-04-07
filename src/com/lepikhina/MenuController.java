@@ -1,6 +1,9 @@
 package com.lepikhina;
 
 import com.lepikhina.model.data.*;
+
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -13,10 +16,15 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -57,6 +65,7 @@ public class MenuController implements Initializable {
     @FXML
     public Button executeBtn;
     public Label successLabel;
+    public VBox variablesPanel;
 
     public MenuController() {
         EventBus.getInstance().addListener(this);
@@ -69,6 +78,31 @@ public class MenuController implements Initializable {
         typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
         foreignKeyColumn.setCellValueFactory(new PropertyValueFactory<>("foreignKey"));
         actionColumn.setCellValueFactory(new PropertyValueFactory<>("actionsBox"));
+
+        actionsTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<DepersonalizationColumn>() {
+            @SneakyThrows
+            @Override
+            public void changed(ObservableValue<? extends DepersonalizationColumn> observable, DepersonalizationColumn oldValue, DepersonalizationColumn newValue) {
+                if (newValue != null) {
+                    DepersonalizationAction selectedAction = newValue.getActionsBox().getValue();
+
+                    selectedAction.getVariables()
+                            .forEach(variable -> newValue.getVariables().putIfAbsent(variable.getVarName(), variable.getDefaultValue()));
+
+                    URL resource = getClass().getResource("variable-panel.fxml");
+
+                    variablesPanel.getChildren().clear();
+                    for (ScriptVariable variable : selectedAction.getVariables()) {
+                        FXMLLoader loader = new FXMLLoader(resource);
+                        loader.load();
+                        variablesPanel.getChildren().add(loader.getRoot());
+                        VariablePanelController controller = loader.getController();
+                        controller.init(newValue, variable);
+                    }
+                }
+            }
+
+        });
     }
 
     @FXML
@@ -162,7 +196,7 @@ public class MenuController implements Initializable {
         for (DepersonalizationColumn row : rows) {
             Class<?> columnType = getTypeFrom(row.getColumnType());
             DepersonalizationAction action = row.getActionsBox().getValue();
-            ScriptAnonymizer scriptAnonymizer = new ScriptAnonymizer(action.getScriptPath());
+            ScriptAnonymizer scriptAnonymizer = new ScriptAnonymizer(action.getScriptPath(), row.getVariables());
 
             List<String> pkColumnKeys = new ArrayList<>(row.getDbColumn().getTable().getPkColumnKeys());
             databaseService.depersonalizeColumn(row.getName(), row.getTable(), pkColumnKeys, columnType, scriptAnonymizer);

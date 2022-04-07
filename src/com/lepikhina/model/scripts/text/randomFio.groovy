@@ -12,24 +12,31 @@ Random random = new Random()
 
 List newValues = new ArrayList()
 for (def oldValue: oldValues) {
-    def name
-    def surname
-    def fatherName
+    def name = ""
+    def surname = ""
+    def fatherName = ""
 
     boolean isMale = random.nextBoolean()
     if (isMale) {
-        name = getRandomFrom(maleNames, random)
-        surname = getRandomFrom(surnameNames, random)
-        fatherName = getRandomFrom(maleFatherNames, random)
+        if (needName)
+            name = getRandomFrom(maleNames, random)
+        if (needSurname)
+            surname = getRandomFrom(surnameNames, random)
+        if (needFatherName)
+            fatherName = getRandomFrom(maleFatherNames, random)
     } else {
-        name = getRandomFrom(femaleNames, random)
-        surname = getRandomFrom(surnameNames, random) + 'а'
-        fatherName = getRandomFrom(femaleFatherNames, random)
+        if (needName)
+            name = getRandomFrom(femaleNames, random)
+        if (needSurname)
+            surname = getRandomFrom(surnameNames, random) + 'а'
+        if (needFatherName)
+            fatherName = getRandomFrom(femaleFatherNames, random)
     }
+    String fullname = Arrays.asList(name, surname, fatherName).stream()
+            .filter({ s -> !s.isBlank() })
+            .collect(Collectors.joining(" "));
 
-    def fio = surname + ' ' + name + ' ' + fatherName
-
-    newValues.add(fio)
+    newValues.add(fullname)
 }
 
 return newValues

@@ -1,5 +1,7 @@
 package com.lepikhina.model.data;
 
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +17,8 @@ public class DepersonalizationAction {
     String scriptPath;
 
     DbColumnType suitableType;
+
+    List<ScriptVariable> variables;
 
     @Override
     public String toString() {

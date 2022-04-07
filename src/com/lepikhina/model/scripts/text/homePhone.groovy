@@ -7,17 +7,17 @@ Random random = new Random()
 List newValues = new ArrayList()
 
 for (def oldValue : oldValues) {
-    def telNumber = generatePhoneNumber(alphabet, 6, random)
+    def telNumber = generatePhoneNumber(alphabet, length, random)
     newValues.add(telNumber)
 }
 
 return newValues
 
 
-static String generatePhoneNumber(String digits, int length, Random random) {
+static String generatePhoneNumber(String digits, def length, Random random) {
     char[] text = new char[length]
 
-    text[0] = digits.charAt(random.nextInt(digits.length() - 1)) + 1
+    text[0] = digits.charAt(random.nextInt(digits.length() - 1)) + 1 //первая цифра не 0
 
     for (int i = 1; i < length; i++) {
         text[i] = digits.charAt(random.nextInt(digits.length()));

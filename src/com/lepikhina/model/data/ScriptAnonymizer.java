@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 public class ScriptAnonymizer implements Anonymizer {
 
     String scriptPath;
+    HashMap<String, Object> variables;
 
     @Override
     public <T> List<TableRow<T>> anonymize(List<TableRow<T>> oldValues) {
@@ -21,7 +23,8 @@ public class ScriptAnonymizer implements Anonymizer {
                 .map(TableRow::getValue)
                 .collect(Collectors.toList());
 
-        List<T> newValues = ScriptsExecutor.executeScript(scriptPath, values);
+        variables.put("oldValues", oldValues);
+        List<T> newValues = ScriptsExecutor.executeScript(scriptPath, variables);
 
         if (newValues.size() != oldValues.size()) {
             throw new RuntimeException("Не для всех рядов были добавлены значения");
