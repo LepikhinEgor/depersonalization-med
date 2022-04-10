@@ -13,16 +13,6 @@
                   <MenuItem mnemonicParsing="false" onAction="#sendDBDisconnectedEvent" text="Отключиться" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="Edit">
-            <items>
-              <MenuItem mnemonicParsing="false" text="Delete" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Help">
-            <items>
-              <MenuItem mnemonicParsing="false" text="About" />
-            </items>
-          </Menu>
         </menus>
       </MenuBar>
    </top>
@@ -43,8 +33,8 @@
                             <TableColumn id="name" fx:id="nameColumn" editable="false" prefWidth="75.0" text="Название" />
                             <TableColumn fx:id="tableColumn" prefWidth="75.0" text="Таблица" />
                               <TableColumn fx:id="typeColumn" prefWidth="75.0" text="Тип" />
-                              <TableColumn fx:id="foreignKeyColumn" minWidth="-Infinity" prefWidth="120.0" text="Внешний ключ" />
                               <TableColumn fx:id="actionColumn" prefWidth="75.0" text="Действие" />
+                              <TableColumn fx:id="resultColumn" prefWidth="75.0" text="✓" />
                           </columns>
                            <columnResizePolicy>
                               <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -54,7 +44,6 @@
                      <bottom>
                         <ButtonBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                           <buttons>
-                              <Label fx:id="successLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" style="-fx-color-label-visible: green" text="Готово!" textAlignment="CENTER" textFill="#128310" />
                             <Button fx:id="executeBtn" mnemonicParsing="false" onAction="#executeDepersonalize" text="Обезличить" />
                           </buttons>
                         </ButtonBar>

@@ -3,11 +3,15 @@ package com.lepikhina.model.data;
 import javafx.event.EventType;
 import javafx.scene.control.ComboBox;
 
+import java.awt.event.InputEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
+import com.lepikhina.model.events.ActionChangedEvent;
+import com.lepikhina.model.events.EventBus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,16 +28,21 @@ public class DepersonalizationColumn {
 
     HashMap<String, Object> variables;
 
+    @Setter
+    String result;
+
     public DepersonalizationColumn(DbColumn dbColumn, List<DepersonalizationAction> actionList) {
         this.dbColumn = dbColumn;
 
         actionsBox = new ComboBox<>();
         actionsBox.getItems().addAll(actionList);
-        DepersonalizationAction currentAction = actionList.get(0);
-        actionsBox.setValue(currentAction);
-//        actionsBox.addEventFilter(EventType.ROOT, event -> ); //TODO
+        Optional<DepersonalizationAction> currentAction = Optional.ofNullable(actionList.get(0));
         variables = new HashMap<>();
-        currentAction.getVariables().forEach(variable -> variables.put(variable.getVarName(), variable.defaultValue));
+        actionsBox.setOnAction( event -> EventBus.sendEvent(new ActionChangedEvent(this)));
+        currentAction.ifPresent(action ->  {
+            actionsBox.setValue(action);
+            action.getVariables().forEach(variable -> variables.put(variable.getVarName(), variable.defaultValue));
+        });
     }
 
     public boolean equalByColumn(DbColumn column) {
@@ -57,8 +66,8 @@ public class DepersonalizationColumn {
         return dbColumn.getType();
     }
 
-    public String getForeignKey() {
-        return dbColumn.getForeignKey();
+    public String getResult() {
+        return result;
     }
 
     @Override

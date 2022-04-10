@@ -80,5 +80,57 @@
         "defaultValue": "abcdefghijklmnopqrstuvxyz"
       }
     ]
+  },
+  {
+    "name": "Значение",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/value.groovy",
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Значение",
+        "varName": "newValue",
+        "type": "STRING",
+        "defaultValue": "Новое значение"
+      }
+    ]
+  },
+  {
+    "name": "Значение",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/value.groovy",
+    "suitableType": "NUMBER",
+    "variables": [
+      {
+        "name": "Значение",
+        "varName": "newValue",
+        "type": "NUMBER",
+        "defaultValue": 10
+      }
+    ]
+  },
+  {
+    "name": "Значение",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/value.groovy",
+    "suitableType": "BOOLEAN",
+    "variables": [
+      {
+        "name": "Значение",
+        "varName": "newValue",
+        "type": "BOOLEAN",
+        "defaultValue": true
+      }
+    ]
+  },
+  {
+    "name": "Значение",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/value.groovy",
+    "suitableType": "DECIMAL",
+    "variables": [
+      {
+        "name": "Значение",
+        "varName": "newValue",
+        "type": "FLOAT",
+        "defaultValue": 10.0
+      }
+    ]
   }
 ]

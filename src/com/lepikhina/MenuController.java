@@ -2,8 +2,6 @@ package com.lepikhina;
 
 import com.lepikhina.model.data.*;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -16,14 +14,10 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TablePosition;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -35,6 +29,7 @@ import java.util.stream.Collectors;
 
 import com.lepikhina.model.ConnectionHolder;
 import com.lepikhina.model.DatabaseService;
+import com.lepikhina.model.events.ActionChangedEvent;
 import com.lepikhina.model.events.ColumnRemoveEvent;
 import com.lepikhina.model.events.ColumnSelectedEvent;
 import com.lepikhina.model.events.DBDisconnectEvent;
@@ -58,13 +53,12 @@ public class MenuController implements Initializable {
     @FXML
     public TableColumn<DepersonalizationColumn, String> typeColumn;
     @FXML
-    public TableColumn<DepersonalizationColumn, String> foreignKeyColumn;
-    @FXML
     public TableColumn<DepersonalizationColumn, String> actionColumn;
+    @FXML
+    public TableColumn<DepersonalizationColumn, String> resultColumn;
 
     @FXML
     public Button executeBtn;
-    public Label successLabel;
     public VBox variablesPanel;
 
     public MenuController() {
@@ -76,33 +70,35 @@ public class MenuController implements Initializable {
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         tableColumn.setCellValueFactory(new PropertyValueFactory<>("table"));
         typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
-        foreignKeyColumn.setCellValueFactory(new PropertyValueFactory<>("foreignKey"));
         actionColumn.setCellValueFactory(new PropertyValueFactory<>("actionsBox"));
+        resultColumn.setCellValueFactory(new PropertyValueFactory<>("result"));
 
-        actionsTable.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<DepersonalizationColumn>() {
-            @SneakyThrows
-            @Override
-            public void changed(ObservableValue<? extends DepersonalizationColumn> observable, DepersonalizationColumn oldValue, DepersonalizationColumn newValue) {
-                if (newValue != null) {
-                    DepersonalizationAction selectedAction = newValue.getActionsBox().getValue();
+        actionsTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
+                -> EventBus.sendEvent(new ActionChangedEvent(newValue)));
 
-                    selectedAction.getVariables()
-                            .forEach(variable -> newValue.getVariables().putIfAbsent(variable.getVarName(), variable.getDefaultValue()));
+        ContextMenu menu = createTableContextMenu();
+        actionsTable.setContextMenu(menu);
+        nameColumn.prefWidthProperty().bind(actionsTable.widthProperty().multiply(0.2));
+        tableColumn.prefWidthProperty().bind(actionsTable.widthProperty().multiply(0.2));
+        typeColumn.prefWidthProperty().bind(actionsTable.widthProperty().multiply(0.2));
+        actionColumn.prefWidthProperty().bind(actionsTable.widthProperty().multiply(0.3));
+        resultColumn.prefWidthProperty().bind(actionsTable.widthProperty().multiply(0.1));
+        nameColumn.setResizable(false);
+        tableColumn.setResizable(false);
+        typeColumn.setResizable(false);
+        actionColumn.setResizable(false);
+        resultColumn.setResizable(false);
+    }
 
-                    URL resource = getClass().getResource("variable-panel.fxml");
-
-                    variablesPanel.getChildren().clear();
-                    for (ScriptVariable variable : selectedAction.getVariables()) {
-                        FXMLLoader loader = new FXMLLoader(resource);
-                        loader.load();
-                        variablesPanel.getChildren().add(loader.getRoot());
-                        VariablePanelController controller = loader.getController();
-                        controller.init(newValue, variable);
-                    }
-                }
-            }
-
+    private ContextMenu createTableContextMenu() {
+        MenuItem removeItemMenu = new MenuItem("Удалить");
+        removeItemMenu.setOnAction((ActionEvent event) -> {
+            EventBus.sendEvent(new ColumnRemoveEvent(actionsTable.getSelectionModel().selectedItemProperty().get().getDbColumn()));
         });
+
+        ContextMenu menu = new ContextMenu();
+        menu.getItems().add(removeItemMenu);
+        return menu;
     }
 
     @FXML
@@ -134,6 +130,7 @@ public class MenuController implements Initializable {
                 .sorted(Comparator.comparing(DbTable::getName))
                 .map(this::getTableAsNode)
                 .collect(Collectors.toList()));
+        tableNode.setExpanded(true);
         schemaTree.setRoot(tableNode);
     }
 
@@ -142,7 +139,7 @@ public class MenuController implements Initializable {
         if (event.getDbColumn().getType().equals(DbColumnType.UNKNOWN))
             return;
 
-        List<DepersonalizationAction> allActions = ActionsHolder.getInstance().getAllActions();
+        List<DepersonalizationAction> allActions = ActionsHolder.getInstance().getTypeActions(event.getDbColumn().getType());
         DepersonalizationColumn newRow = new DepersonalizationColumn(event.getDbColumn(), allActions);
 
         if (!actionsTable.getItems().contains(newRow))
@@ -158,6 +155,32 @@ public class MenuController implements Initializable {
     public void onDbDisconnected(DBDisconnectEvent event) {
         actionsTable.getItems().clear();
         schemaTree.setRoot(null);
+    }
+
+
+    @SneakyThrows
+    @EventListener(ActionChangedEvent.class)
+    public void onActionChanged(ActionChangedEvent event) {
+        DepersonalizationColumn newAction = event.getNewAction();
+        if (newAction != null) {
+            DepersonalizationAction selectedAction = newAction.getActionsBox().getValue();
+
+            selectedAction.getVariables()
+                    .forEach(variable -> newAction.getVariables().putIfAbsent(variable.getVarName(), variable.getDefaultValue()));
+
+            URL resource = getClass().getResource("variable-panel.fxml");
+
+            variablesPanel.getChildren().clear();
+            for (ScriptVariable variable : selectedAction.getVariables()) {
+                FXMLLoader loader = new FXMLLoader(resource);
+                loader.load();
+                variablesPanel.getChildren().add(loader.getRoot());
+                VariablePanelController controller = loader.getController();
+                controller.init(newAction, variable);
+            }
+        } else {
+            variablesPanel.getChildren().clear();
+        }
     }
 
     private TreeItem<SchemaItem> getTableAsNode(DbTable table) {
@@ -188,8 +211,6 @@ public class MenuController implements Initializable {
     @FXML
     @SneakyThrows
     public void executeDepersonalize(ActionEvent event) {
-        successLabel.setVisible(false);
-
         ObservableList<DepersonalizationColumn> rows = actionsTable.getItems();
         DatabaseService databaseService = new DatabaseService();
 
@@ -199,10 +220,10 @@ public class MenuController implements Initializable {
             ScriptAnonymizer scriptAnonymizer = new ScriptAnonymizer(action.getScriptPath(), row.getVariables());
 
             List<String> pkColumnKeys = new ArrayList<>(row.getDbColumn().getTable().getPkColumnKeys());
-            databaseService.depersonalizeColumn(row.getName(), row.getTable(), pkColumnKeys, columnType, scriptAnonymizer);
+            databaseService.depersonalizeColumn(row, pkColumnKeys, columnType, scriptAnonymizer);
         }
 
-        successLabel.setVisible(true);
+        actionsTable.refresh();
     }
 
     private Class<?> getTypeFrom(DbColumnType columnType) {

@@ -3,6 +3,7 @@ package com.lepikhina.model.data;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,8 +36,10 @@ public class ActionsHolder {
         return instance;
     }
 
-    public List<DepersonalizationAction> getAllActions() {
-        return actions;
+    public List<DepersonalizationAction> getTypeActions(DbColumnType dbColumnType) {
+        return actions.stream()
+                .filter(depersonalizationAction -> depersonalizationAction.getSuitableType().equals(dbColumnType))
+                .collect(Collectors.toList());
     }
 
 

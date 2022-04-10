@@ -1,5 +1,6 @@
 package com.lepikhina.model;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -19,6 +20,7 @@ import com.lepikhina.model.data.Anonymizer;
 import com.lepikhina.model.data.DbColumn;
 import com.lepikhina.model.data.DbColumnType;
 import com.lepikhina.model.data.DbTable;
+import com.lepikhina.model.data.DepersonalizationColumn;
 import com.lepikhina.model.data.TableRow;
 import com.lepikhina.model.exceptions.DatabaseConnectException;
 import com.lepikhina.model.persitstence.DatabaseProperties;
@@ -98,22 +100,36 @@ public class DatabaseService {
         return tables;
     }
 
-    public <T> void depersonalizeColumn(String columnName,
-                                        String tableName,
+    public <T> void depersonalizeColumn(DepersonalizationColumn column,
                                         List<String> idColumns,
                                         Class<T> type, Anonymizer anonymizer) throws DatabaseConnectException, SQLException {
         int offset = 0;
-        while (true) {
-            List<TableRow<T>> oldValues = getColumnValues(columnName, tableName, idColumns, type, offset);
+        Connection connection = connectDatabase();
+        connection.setAutoCommit(false);
+        try {
+            while (true) {
 
-            List<TableRow<T>> newValues = anonymizer.anonymize(oldValues);
+                List<TableRow<T>> oldValues = getColumnValues(column.getName(), column.getTable(), idColumns, type, offset);
 
-            updateColumnValues(columnName, tableName, newValues, idColumns);
+                List<TableRow<T>> newValues = anonymizer.anonymize(oldValues);
 
-            offset += BATCH_SIZE;
-            if (oldValues.size() < BATCH_SIZE)
-                break;
+                updateColumnValues(column.getName(), column.getTable(), newValues, idColumns, connection);
+
+                offset += BATCH_SIZE;
+                if (oldValues.size() < BATCH_SIZE) {
+                    connection.commit();
+                    column.setResult("✔");
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            connection.rollback();
+            column.setResult("✖");
         }
+
+
+        connection.close();
 
     }
 
@@ -132,7 +148,11 @@ public class DatabaseService {
 
             List<TableRow<T>> resultList = new ArrayList<>();
             while (resultSet.next()) {
-                T value = resultSet.getObject(columnName, type);
+                T value;
+                if (type.equals(Double.class))
+                    value = (T)(Double)(resultSet.getObject(columnName, BigDecimal.class).doubleValue());
+                else
+                    value = resultSet.getObject(columnName, type);
                 List<Object> idValues = new ArrayList<>();
                 for (String idColumn : idColumns) {
                     idValues.add(resultSet.getObject(idColumn));
@@ -147,9 +167,8 @@ public class DatabaseService {
     private <T> void updateColumnValues(String columnName,
                                         String tableName,
                                         List<TableRow<T>> values,
-                                        List<String> idColumns) throws DatabaseConnectException, SQLException {
-        Connection connection = connectDatabase();
-
+                                        List<String> idColumns,
+                                        Connection connection) throws DatabaseConnectException, SQLException {
         String query = generateUpdateRowQuery(columnName, tableName, idColumns);
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             for (TableRow<T> value : values) {
