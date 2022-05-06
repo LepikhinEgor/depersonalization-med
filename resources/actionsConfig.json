@@ -95,8 +95,14 @@
     ]
   },
   {
+    "name": "Перемешать",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/shuffle.groovy",
+    "suitableType": "TEXT",
+    "variables": []
+  },
+  {
     "name": "Значение",
-    "scriptPath": "src/com/lepikhina/model/scripts/text/value.groovy",
+    "scriptPath": "src/com/lepikhina/model/scripts/number/value.groovy",
     "suitableType": "NUMBER",
     "variables": [
       {
@@ -108,8 +114,33 @@
     ]
   },
   {
+    "name": "Перемешать",
+    "scriptPath": "src/com/lepikhina/model/scripts/number/shuffle.groovy",
+    "suitableType": "NUMBER",
+    "variables": []
+  },
+  {
+    "name": "Случайное значение",
+    "scriptPath": "src/com/lepikhina/model/scripts/number/randomValue.groovy",
+    "suitableType": "NUMBER",
+    "variables": [
+      {
+        "name": "Минимум",
+        "varName": "minValue",
+        "type": "NUMBER",
+        "defaultValue": 0
+      },
+      {
+        "name": "Максимум",
+        "varName": "maxValue",
+        "type": "NUMBER",
+        "defaultValue": 10
+      }
+    ]
+  },
+  {
     "name": "Значение",
-    "scriptPath": "src/com/lepikhina/model/scripts/text/value.groovy",
+    "scriptPath": "src/com/lepikhina/model/scripts/booleanType/value.groovy",
     "suitableType": "BOOLEAN",
     "variables": [
       {
@@ -121,8 +152,20 @@
     ]
   },
   {
+    "name": "Перемешать",
+    "scriptPath": "src/com/lepikhina/model/scripts/booleanType/shuffle.groovy",
+    "suitableType": "BOOLEAN",
+    "variables": []
+  },
+  {
+    "name": "Случайное значение",
+    "scriptPath": "src/com/lepikhina/model/scripts/text/randomValue.groovy",
+    "suitableType": "BOOLEAN",
+    "variables": []
+  },
+  {
     "name": "Значение",
-    "scriptPath": "src/com/lepikhina/model/scripts/text/value.groovy",
+    "scriptPath": "src/com/lepikhina/model/scripts/floatType/value.groovy",
     "suitableType": "DECIMAL",
     "variables": [
       {
@@ -132,5 +175,29 @@
         "defaultValue": 10.0
       }
     ]
+  },
+  {
+    "name": "Перемешать",
+    "scriptPath": "src/com/lepikhina/model/scripts/floatType/shuffle.groovy",
+    "suitableType": "DECIMAL",
+    "variables": []
+  },
+  {
+    "name": "Случайное значение",
+    "scriptPath": "src/com/lepikhina/model/scripts/floatType/randomValue.groovy",
+    "suitableType": "DECIMAL",
+    "variables": [
+      {
+        "name": "Минимум",
+        "varName": "minValue",
+        "type": "FLOAT",
+        "defaultValue": 0
+      },
+      {
+        "name": "Максимум",
+        "varName": "maxValue",
+        "type": "FLOAT",
+        "defaultValue": 10.0
+      }]
   }
 ]

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ScriptAnonymizer implements Anonymizer {
 
     String scriptPath;
@@ -23,10 +23,10 @@ public class ScriptAnonymizer implements Anonymizer {
                 .map(TableRow::getValue)
                 .collect(Collectors.toList());
 
-        variables.put("oldValues", oldValues);
+        variables.put("oldValues", values);
         List<T> newValues = ScriptsExecutor.executeScript(scriptPath, variables);
 
-        if (newValues.size() != oldValues.size()) {
+        if (newValues.size() != values.size()) {
             throw new RuntimeException("Не для всех рядов были добавлены значения");
         }
 
