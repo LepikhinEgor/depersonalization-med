@@ -1,0 +1,203 @@
+[
+  {
+    "name": "ФИО",
+    "scriptPath": "common/scripts/text/randomFio.groovy",
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Имя",
+        "varName": "needName",
+        "type": "BOOLEAN",
+        "defaultValue": true
+      },
+      {
+        "name": "Фамилия",
+        "varName": "needSurname",
+        "type": "BOOLEAN",
+        "defaultValue": true
+      },
+      {
+        "name": "Отчество",
+        "varName": "needFatherName",
+        "type": "BOOLEAN",
+        "defaultValue": true
+      }
+    ]
+  },
+  {
+    "name": "Мобильный телефон",
+    "scriptPath": "common/scripts/text/mobilePhone.groovy",
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Код страны",
+        "varName": "countryCode",
+        "type": "STRING",
+        "defaultValue": 7
+      }
+    ]
+  },
+  {
+    "name": "Домашний телефон",
+    "scriptPath": "common/scripts/text/homePhone.groovy",
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Длина",
+        "varName": "length",
+        "type": "NUMBER",
+        "defaultValue": 6
+      }
+    ]
+  },
+  {
+    "name": "Адрес",
+    "scriptPath": "common/scripts/text/address.groovy",
+    "suitableType": "TEXT",
+    "variables": []
+  },
+  {
+    "name": "Email",
+    "scriptPath": "common/scripts/text/email.groovy",
+    "suitableType": "TEXT",
+    "variables": []
+  },
+  {
+    "name": "Случайная строка",
+    "scriptPath": "common/scripts/text/randomString.groovy",
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Длина",
+        "varName": "length",
+        "type": "NUMBER",
+        "defaultValue": 10
+      },
+      {
+        "name": "Символы",
+        "varName": "alphabet",
+        "type": "STRING",
+        "defaultValue": "abcdefghijklmnopqrstuvxyz"
+      }
+    ]
+  },
+  {
+    "name": "Значение",
+    "scriptPath": "common/scripts/text/value.groovy",
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Значение",
+        "varName": "newValue",
+        "type": "STRING",
+        "defaultValue": "Новое значение"
+      }
+    ]
+  },
+  {
+    "name": "Перемешать",
+    "scriptPath": "common/scripts/text/shuffle.groovy",
+    "suitableType": "TEXT",
+    "variables": []
+  },
+  {
+    "name": "Значение",
+    "scriptPath": "common/scripts/number/value.groovy",
+    "suitableType": "NUMBER",
+    "variables": [
+      {
+        "name": "Значение",
+        "varName": "newValue",
+        "type": "NUMBER",
+        "defaultValue": 10
+      }
+    ]
+  },
+  {
+    "name": "Перемешать",
+    "scriptPath": "common/scripts/number/shuffle.groovy",
+    "suitableType": "NUMBER",
+    "variables": []
+  },
+  {
+    "name": "Случайное значение",
+    "scriptPath": "common/scripts/number/randomValue.groovy",
+    "suitableType": "NUMBER",
+    "variables": [
+      {
+        "name": "Минимум",
+        "varName": "minValue",
+        "type": "NUMBER",
+        "defaultValue": 0
+      },
+      {
+        "name": "Максимум",
+        "varName": "maxValue",
+        "type": "NUMBER",
+        "defaultValue": 10
+      }
+    ]
+  },
+  {
+    "name": "Значение",
+    "scriptPath": "common/scripts/booleanType/value.groovy",
+    "suitableType": "BOOLEAN",
+    "variables": [
+      {
+        "name": "Значение",
+        "varName": "newValue",
+        "type": "BOOLEAN",
+        "defaultValue": true
+      }
+    ]
+  },
+  {
+    "name": "Перемешать",
+    "scriptPath": "common/scripts/booleanType/shuffle.groovy",
+    "suitableType": "BOOLEAN",
+    "variables": []
+  },
+  {
+    "name": "Случайное значение",
+    "scriptPath": "common/scripts/text/randomValue.groovy",
+    "suitableType": "BOOLEAN",
+    "variables": []
+  },
+  {
+    "name": "Значение",
+    "scriptPath": "common/scripts/floatType/value.groovy",
+    "suitableType": "DECIMAL",
+    "variables": [
+      {
+        "name": "Значение",
+        "varName": "newValue",
+        "type": "FLOAT",
+        "defaultValue": 10.0
+      }
+    ]
+  },
+  {
+    "name": "Перемешать",
+    "scriptPath": "common/scripts/floatType/shuffle.groovy",
+    "suitableType": "DECIMAL",
+    "variables": []
+  },
+  {
+    "name": "Случайное значение",
+    "scriptPath": "common/scripts/floatType/randomValue.groovy",
+    "suitableType": "DECIMAL",
+    "variables": [
+      {
+        "name": "Минимум",
+        "varName": "minValue",
+        "type": "FLOAT",
+        "defaultValue": 0
+      },
+      {
+        "name": "Максимум",
+        "varName": "maxValue",
+        "type": "FLOAT",
+        "defaultValue": 10.0
+      }]
+  }
+]
