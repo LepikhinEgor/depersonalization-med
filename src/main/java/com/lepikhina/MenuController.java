@@ -2,6 +2,7 @@ package com.lepikhina;
 
 import com.lepikhina.model.data.*;
 
+import com.lepikhina.model.persitstence.ConnectionPreset;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -26,7 +27,6 @@ import java.sql.Date;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.lepikhina.model.ConnectionHolder;
 import com.lepikhina.model.DatabaseService;
 import com.lepikhina.model.events.ActionChangedEvent;
 import com.lepikhina.model.events.ColumnRemoveEvent;
@@ -122,9 +122,10 @@ public class MenuController implements Initializable {
     public void onDbConnect(DbConnectEvent event) {
         DatabaseService service = new DatabaseService();
 
-        Collection<DbTable> databaseSchema = service.getDatabaseSchema();
+        ConnectionPreset connectionProperties = ConnectionsHolder.getInstance().getCurrentPreset();
+        Collection<DbTable> databaseSchema = service.getDatabaseSchema(connectionProperties.getSchemaName());
 
-        TreeItem<SchemaItem> tableNode = new TreeItem<>(new SchemaItem(ConnectionHolder.getConnectionProperties().getDatabaseName()));
+        TreeItem<SchemaItem> tableNode = new TreeItem<>(new SchemaItem(connectionProperties.getDatabaseName()));
         tableNode.getChildren().addAll(databaseSchema.stream()
                 .sorted(Comparator.comparing(DbTable::getName))
                 .map(this::getTableAsNode)

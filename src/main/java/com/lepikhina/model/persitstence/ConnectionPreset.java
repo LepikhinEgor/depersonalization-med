@@ -10,7 +10,9 @@ import lombok.experimental.FieldDefaults;
 @Setter
 @EqualsAndHashCode
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DatabaseProperties {
+public class ConnectionPreset {
+
+    String name;
 
     String url;
 
@@ -20,4 +22,11 @@ public class DatabaseProperties {
 
     String databaseName;
 
+    String schemaName;
+
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

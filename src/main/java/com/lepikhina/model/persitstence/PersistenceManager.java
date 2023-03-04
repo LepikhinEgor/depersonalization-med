@@ -11,11 +11,11 @@ public class PersistenceManager {
     private static final String FOLDER_NAME = "depersonalization";
     private static final String FILE_NAME = "preferences.json";
 
-    public static void saveDatabaseProperties(DatabaseProperties databaseProperties) {
+    public static void saveDatabaseProperties(ConnectionPreset connectionPreset) {
         UserSave userPreferences = getUserPreferences();
 
-        if (!userPreferences.getDatabaseProperties().contains(databaseProperties)) {
-            userPreferences.getDatabaseProperties().add(databaseProperties);
+        if (!userPreferences.getDatabaseProperties().contains(connectionPreset)) {
+            userPreferences.getDatabaseProperties().add(connectionPreset);
         }
 
         rewritePreferencesFile(userPreferences);

@@ -1,0 +1,28 @@
+{
+  "connectionPresets": [
+    {
+      "name": "New connection",
+      "url": "jdbc:postgresql://",
+      "username": "",
+      "password": "",
+      "databaseName": "",
+      "schemaName": "public"
+    },
+    {
+      "name": "Corp activity",
+      "url": "jdbc:postgresql://localhost:5432",
+      "username": "postgres",
+      "password": "postgres",
+      "databaseName": "corp_activity",
+      "schemaName": "public"
+    },
+    {
+      "name": "isfront",
+      "url": "jdbc:postgresql://localhost:5432",
+      "username": "postgres",
+      "password": "postgres",
+      "databaseName": "isfront",
+      "schemaName": "public"
+    }
+  ]
+}

@@ -1,37 +1,21 @@
 package com.lepikhina.model;
 
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.StringJoiner;
-import java.util.stream.Collectors;
-
-import com.lepikhina.model.data.Anonymizer;
-import com.lepikhina.model.data.DbColumn;
-import com.lepikhina.model.data.DbColumnType;
-import com.lepikhina.model.data.DbTable;
-import com.lepikhina.model.data.DepersonalizationColumn;
-import com.lepikhina.model.data.TableRow;
+import com.lepikhina.model.data.*;
 import com.lepikhina.model.exceptions.DatabaseConnectException;
-import com.lepikhina.model.persitstence.DatabaseProperties;
+import com.lepikhina.model.persitstence.ConnectionPreset;
 import lombok.AccessLevel;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
+import java.sql.*;
+import java.util.*;
+import java.util.stream.Collectors;
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DatabaseService {
 
-    private static final String SELECT_PK_QUERRY = "SELECT pg_attribute.attname \n" +
+    private static final String SELECT_PK_QUERY = "SELECT pg_attribute.attname \n" +
             "FROM pg_index, pg_class, pg_attribute, pg_namespace \n" +
             "WHERE \n" +
             "  pg_class.oid = ?::regclass AND \n" +
@@ -42,14 +26,14 @@ public class DatabaseService {
             "  pg_attribute.attnum = any(pg_index.indkey)\n" +
             " AND indisprimary";
     private final Integer BATCH_SIZE = 100;
-    private List<String> numberTypes = Arrays.asList("bigint", "integer");
-    private List<String> decimalTypes = Collections.singletonList("numeric");
-    private List<String> timeTypes = Arrays.asList("timestamp with time zone", "timestamp without time zone", "date");
-    private List<String> booleanTypes = Collections.singletonList("boolean");
-    private List<String> textTypes = Arrays.asList("character varying", "text");
+    private final List<String> numberTypes = Arrays.asList("bigint", "integer");
+    private final List<String> decimalTypes = Collections.singletonList("numeric");
+    private final List<String> timeTypes = Arrays.asList("timestamp with time zone", "timestamp without time zone", "date");
+    private final List<String> booleanTypes = Collections.singletonList("boolean");
+    private final List<String> textTypes = Arrays.asList("character varying", "text");
 
     public boolean isConnectionCorrect() {
-        try(Connection connection = connectDatabase()) {
+        try (Connection connection = connectDatabase()) {
             return true;
         } catch (Exception e) {
             return false;
@@ -57,13 +41,13 @@ public class DatabaseService {
     }
 
     public Connection connectDatabase() throws DatabaseConnectException {
-        DatabaseProperties databaseProperties = ConnectionHolder.getConnectionProperties();
+        ConnectionPreset connectionPreset = ConnectionsHolder.getInstance().getCurrentPreset();
 
         try {
             return DriverManager.getConnection(
-                    databaseProperties.getUrl() + "/" + databaseProperties.getDatabaseName(),
-                    databaseProperties.getUsername(),
-                    databaseProperties.getPassword()
+                    connectionPreset.getUrl() + "/" + connectionPreset.getDatabaseName(),
+                    connectionPreset.getUsername(),
+                    connectionPreset.getPassword()
             );
         } catch (Exception e) {
             throw new DatabaseConnectException();
@@ -71,19 +55,21 @@ public class DatabaseService {
     }
 
     @SneakyThrows
-    public Collection<DbTable> getDatabaseSchema() throws DatabaseConnectException {
+    public Collection<DbTable> getDatabaseSchema(String schemaName) throws DatabaseConnectException {
 
         String getTablesQuery = "SELECT *" +
                 "  FROM information_schema.tables  WHERE table_type='BASE TABLE' " +
-                "  AND table_schema='public' ORDER BY table_name";
+                "  AND table_schema = ? ORDER BY table_name";
 
         Set<DbTable> tables = new HashSet<>();
         try (Connection connection = connectDatabase();
              PreparedStatement preparedStatement = connection.prepareStatement(getTablesQuery)) {
+            preparedStatement.setString(1, schemaName);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
                 DbTable table = new DbTable();
+                table.setSchemaName(schemaName);
                 String tableName = resultSet.getString("table_name");
 
                 Set<String> primaryKeys = getTablePrimaryKeys(tableName, connection);
@@ -150,7 +136,7 @@ public class DatabaseService {
             while (resultSet.next()) {
                 T value;
                 if (type.equals(Double.class))
-                    value = (T)(Double)(resultSet.getObject(columnName, BigDecimal.class).doubleValue());
+                    value = (T) (Double) (resultSet.getObject(columnName, BigDecimal.class).doubleValue());
                 else
                     value = resultSet.getObject(columnName, type);
                 List<Object> idValues = new ArrayList<>();
@@ -206,12 +192,13 @@ public class DatabaseService {
 
     private Set<DbColumn> getTableColumns(DbTable table) throws SQLException, DatabaseConnectException {
         String getColumnsQuery = "SELECT * FROM information_schema.columns " +
-                "WHERE table_schema = 'public' AND table_name  = ?";
+                "WHERE table_schema = ? AND table_name  = ?";
 
         Set<DbColumn> columns = new HashSet<>();
         Connection connection = connectDatabase();
         try (PreparedStatement preparedStatement = connection.prepareStatement(getColumnsQuery)) {
-            preparedStatement.setString(1, table.getName());
+            preparedStatement.setString(1, table.getSchemaName());
+            preparedStatement.setString(2, table.getName());
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
@@ -228,7 +215,7 @@ public class DatabaseService {
 
     private Set<String> getTablePrimaryKeys(String tableName, Connection connection) throws SQLException {
         Set<String> pkColumnNames = new HashSet<>();
-        try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_PK_QUERRY)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_PK_QUERY)) {
             preparedStatement.setString(1, tableName);
             ResultSet resultSet = preparedStatement.executeQuery();
 

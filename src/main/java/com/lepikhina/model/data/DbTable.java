@@ -13,6 +13,8 @@ public class DbTable {
 
     String name;
 
+    String schemaName;
+
     Set<String> pkColumnKeys;
 
     Set<DbColumn> columns;

@@ -13,7 +13,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserSave {
 
-    List<DatabaseProperties> databaseProperties;
+    List<ConnectionPreset> databaseProperties;
 
     List<CustomScript> scripts;
 
