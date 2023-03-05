@@ -2,6 +2,8 @@ package com.lepikhina;
 
 import com.lepikhina.model.data.*;
 
+import com.lepikhina.model.events.*;
+import com.lepikhina.model.events.EventListener;
 import com.lepikhina.model.persitstence.ConnectionPreset;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -28,13 +30,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.lepikhina.model.DatabaseService;
-import com.lepikhina.model.events.ActionChangedEvent;
-import com.lepikhina.model.events.ColumnRemoveEvent;
-import com.lepikhina.model.events.ColumnSelectedEvent;
-import com.lepikhina.model.events.DBDisconnectEvent;
-import com.lepikhina.model.events.DbConnectEvent;
-import com.lepikhina.model.events.EventBus;
-import com.lepikhina.model.events.EventListener;
 import lombok.SneakyThrows;
 
 public class MenuController implements Initializable {
@@ -60,6 +55,10 @@ public class MenuController implements Initializable {
     public Button executeBtn;
     public VBox variablesPanel;
 
+    @FXML
+    public TableView<DepersonalizationColumn> fillingTable;
+    public TableColumn<DepersonalizationColumn, String> fillRequiredColumn;
+
     public MenuController() {
         EventBus.getInstance().addListener(this);
     }
@@ -73,6 +72,8 @@ public class MenuController implements Initializable {
         resultColumn.setCellValueFactory(new PropertyValueFactory<>("result"));
 
         actionsTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
+                -> EventBus.sendEvent(new ActionChangedEvent(newValue)));
+        fillingTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue)
                 -> EventBus.sendEvent(new ActionChangedEvent(newValue)));
 
         ContextMenu menu = createTableContextMenu();
@@ -151,6 +152,28 @@ public class MenuController implements Initializable {
         actionsTable.getItems().removeIf(row -> row.equalByColumn(event.getDbColumn()));
     }
 
+    @EventListener(TableSelectedEvent.class)
+    public void onTableSelected(TableSelectedEvent event) {
+
+        Set<DbColumn> columns = event.getDbTable().getColumns();
+
+        for (DbColumn column : columns) {
+            List<DepersonalizationAction> allActions = ActionsHolder.getInstance().getTypeActions(column.getType());
+            DepersonalizationColumn newRow = new DepersonalizationColumn(column, allActions);
+
+            if (!fillingTable.getItems().contains(newRow))
+                fillingTable.getItems().addAll(newRow);
+        }
+    }
+
+    @EventListener(TableRemoveEvent.class)
+    public void onTableRemove(TableRemoveEvent event) {
+        Set<DbColumn> columns = event.getDbTable().getColumns();
+        for (DbColumn column : columns) {
+            fillingTable.getItems().removeIf(row -> row.equalByColumn(column));
+        }
+    }
+
     @EventListener(DBDisconnectEvent.class)
     public void onDbDisconnected(DBDisconnectEvent event) {
         actionsTable.getItems().clear();
@@ -185,6 +208,16 @@ public class MenuController implements Initializable {
 
     private TreeItem<SchemaItem> getTableAsNode(DbTable table) {
         TreeItem<SchemaItem> tableNode = new TreeItem<>(new SchemaItem(table));
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem addAction = new MenuItem("Добавить");
+        MenuItem removeAction = new MenuItem("Удалить");
+        addAction.setOnAction(event -> EventBus.sendEvent(new TableSelectedEvent(table)));
+        removeAction.setOnAction(event -> EventBus.sendEvent(new TableRemoveEvent(table)));
+
+        contextMenu.getItems().addAll(addAction, removeAction);
+
+        tableNode.getValue().setContextMenu(contextMenu);
+
         tableNode.getChildren().addAll(
                 table.getColumns().stream()
                         .sorted(Comparator.comparing(DbColumn::getName))
@@ -225,6 +258,31 @@ public class MenuController implements Initializable {
 
         actionsTable.refresh();
     }
+
+    @FXML
+    @SneakyThrows
+    public void executeFilling(ActionEvent event) {
+        ObservableList<DepersonalizationColumn> rows = actionsTable.getItems();
+        DatabaseService databaseService = new DatabaseService();
+
+        Map<DbTable, List<DepersonalizationColumn>> tableColumns = rows.stream()
+                .collect(Collectors.groupingBy(column -> column.getDbColumn().getTable()));
+
+        for (Map.Entry<DbTable, List<DepersonalizationColumn>> tableEntry : tableColumns.entrySet()) {
+            DbTable table = tableEntry.getKey();
+            List<DepersonalizationColumn> columns = tableEntry.getValue();
+            List<String> pkColumnKeys = new ArrayList<>(table.getPkColumnKeys());
+
+            Map<DepersonalizationColumn, ScriptAnonymizer> columnsScripts = columns.stream()
+                    .collect(Collectors.toMap(column -> column,
+                            column -> new ScriptAnonymizer(column.getActionsBox().getValue().getScriptPath(), column.getVariables())));
+
+            databaseService.fillTable(columnsScripts, pkColumnKeys);
+        }
+
+        actionsTable.refresh();
+    }
+
 
     private Class<?> getTypeFrom(DbColumnType columnType) {
         if (columnType.equals(DbColumnType.BOOLEAN))

@@ -86,6 +86,47 @@ public class DatabaseService {
         return tables;
     }
 
+    public <T> void fillTable(String tableName,
+            Map<DepersonalizationColumn, ScriptAnonymizer> columnsScripts,
+                              Integer count) throws DatabaseConnectException, SQLException {
+
+
+        int offset = 0;
+        Connection connection = connectDatabase();
+        connection.setAutoCommit(false);
+        try {
+            while (true) {
+                Map<DepersonalizationColumn, List<TableRow<T>>> columnItemList = columnsScripts.entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, t -> t.getValue().generate(BATCH_SIZE)));
+
+                List<NewTableRow> newTableRows = new ArrayList<>();
+                for (int i = 0; i < BATCH_SIZE; i++) {
+                    NewTableRow newTableRow = new NewTableRow(new HashMap<>());
+                    for (Map.Entry<DepersonalizationColumn, List<TableRow<T>>> columnItems : columnItemList.entrySet()) {
+                        newTableRow.getColumns().put(columnItems.getKey().getName(), columnItems.getValue().get(i));
+                    }
+
+                    newTableRows.add(newTableRow);
+                }
+
+                insertRows(tableName, newTableRows, connection);
+
+                offset += newTableRows.size();
+                if (offset >= count) {
+                    connection.commit();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            connection.rollback();
+        }
+
+
+        connection.close();
+
+    }
+
     public <T> void depersonalizeColumn(DepersonalizationColumn column,
                                         List<String> idColumns,
                                         Class<T> type, Anonymizer anonymizer) throws DatabaseConnectException, SQLException {
@@ -179,7 +220,45 @@ public class DatabaseService {
         }
     }
 
+    private <T> void insertRows(String tableName,
+                                List<NewTableRow> newTableRows,
+                                Connection connection) throws DatabaseConnectException, SQLException {
+        String query = generateInsertRowQuery(newTableRows, tableName);
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            for (TableRow<T> value : values) {
+                statement.setObject(1, value.getValue());
+                for (int i = 0; i < idColumns.size(); i++) {
+                    statement.setObject(i + 2, value.getIds().get(i));
+                }
+
+                statement.addBatch();
+            }
+
+            int[] results = statement.executeBatch();
+
+            for (int i = 0; i < results.length; i++) {
+                if (results[i] == 0) {
+                    String ids = values.get(i).getIds().stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining(","));
+                    System.out.println("Row with id=" + ids + " not found");
+                }
+            }
+        }
+    }
+
     private String generateUpdateRowQuery(String columnName, String tableName, List<String> idColumns) {
+        String prefix = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE ";
+
+        if (idColumns.size() == 1)
+            return prefix + idColumns.get(0) + "= ?;";
+        StringJoiner joiner = new StringJoiner("= ? AND ", prefix, ";");
+        idColumns.forEach(joiner::add);
+
+        return joiner.toString();
+    }
+
+    private String generateInsertRowQuery(List<NewTableRow> newTableRows, String tableName) {
         String prefix = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE ";
 
         if (idColumns.size() == 1)

@@ -5,14 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
+import java.util.Map;
 
 @Getter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableRow<T> {
+public class NewTableRow {
 
-    T value;
-
-    List<Object> ids;
+    final Map<String, Object> columns;
 }

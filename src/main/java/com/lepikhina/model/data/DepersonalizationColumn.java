@@ -36,13 +36,13 @@ public class DepersonalizationColumn {
 
         actionsBox = new ComboBox<>();
         actionsBox.getItems().addAll(actionList);
-        Optional<DepersonalizationAction> currentAction = Optional.ofNullable(actionList.get(0));
         variables = new HashMap<>();
         actionsBox.setOnAction( event -> EventBus.sendEvent(new ActionChangedEvent(this)));
-        currentAction.ifPresent(action ->  {
+        if (!actionList.isEmpty()) {
+            DepersonalizationAction action = actionList.get(0);
             actionsBox.setValue(action);
             action.getVariables().forEach(variable -> variables.put(variable.getVarName(), variable.defaultValue));
-        });
+        }
     }
 
     public boolean equalByColumn(DbColumn column) {

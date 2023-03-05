@@ -37,4 +37,19 @@ public class ScriptAnonymizer implements Anonymizer {
 
         return updatedRows;
     }
+
+    @Override
+    public <T> List<TableRow<T>> generate(Integer count) {
+        List<Object> oldValues = new ArrayList<>(); //ПРидумать дефолтные значения для каждого типа
+        for (int i = 0; i < count; i++) {
+            oldValues.add(new Object());
+        }
+        variables.put("oldValues", oldValues);
+
+        List<T> newValues = ScriptsExecutor.executeScript(scriptPath, variables);
+
+        return newValues.stream()
+                .map(newValue -> new TableRow<>(newValue, null))
+                .collect(Collectors.toList());
+    }
 }
