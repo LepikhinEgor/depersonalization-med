@@ -68,7 +68,7 @@ public class AnonymizePanelController implements Initializable {
 
     @EventListener(ColumnSelectedEvent.class)
     public void onColumnSelected(ColumnSelectedEvent event) {
-        if (event.getDbColumn().getType().equals(DbColumnType.UNKNOWN))
+        if (event.getDbColumn().getType().equals(DbColumnType.UNKNOWN) && !event.getDbColumn().isNullable())
             return;
 
         List<DepersonalizationAction> allActions = ActionsHolder.getInstance().getTypeActions(event.getDbColumn().getType());
