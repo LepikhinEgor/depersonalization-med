@@ -5,7 +5,7 @@ import com.lepikhina.model.DatabaseService;
 import com.lepikhina.model.data.ConnectionsHolder;
 import com.lepikhina.model.data.DbColumn;
 import com.lepikhina.model.data.DbTable;
-import com.lepikhina.model.events.*;
+import com.lepikhina.view.events.*;
 import com.lepikhina.model.persitstence.ConnectionPreset;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
@@ -78,6 +78,11 @@ public class SchemaTreePanelController {
 
     private TreeItem<SchemaItem> getColumnAsNode(DbColumn column) {
         SchemaItem schemaItem = new SchemaItem(column);
+        schemaItem.setOnMouseClicked(event -> {
+            if (event.getClickCount() >= 2) {
+                EventBus.sendEvent(new ColumnSelectedEvent(column));
+            }
+        });
         ContextMenu contextMenu = new ContextMenu();
         MenuItem addAction = new MenuItem("Добавить");
         MenuItem removeAction = new MenuItem("Удалить");

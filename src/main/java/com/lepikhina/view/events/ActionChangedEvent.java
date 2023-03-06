@@ -1,17 +1,17 @@
-package com.lepikhina.model.events;
+package com.lepikhina.view.events;
 
 import com.lepikhina.model.data.DepersonalizationColumn;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Getter
 @AllArgsConstructor
-public class ActionSuccessEvent extends AppEvent {
+@Getter
+public class ActionChangedEvent extends AppEvent{
 
-    DepersonalizationColumn column;
+    DepersonalizationColumn newAction;
 
     @Override
     protected String getName() {
-        return "action-success";
+        return "action-changed";
     }
 }

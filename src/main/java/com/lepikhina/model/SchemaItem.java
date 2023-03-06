@@ -1,6 +1,5 @@
 package com.lepikhina.model;
 
-import javafx.event.EventType;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -10,48 +9,47 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import com.lepikhina.model.data.DbColumn;
-import com.lepikhina.model.data.DbColumnType;
 import com.lepikhina.model.data.DbTable;
-import com.lepikhina.model.events.ColumnSelectedEvent;
-import com.lepikhina.model.events.EventBus;
+import com.lepikhina.view.events.ColumnSelectedEvent;
+import com.lepikhina.view.events.EventBus;
+import lombok.AccessLevel;
 import lombok.SneakyThrows;
+import lombok.experimental.FieldDefaults;
 
+import static com.lepikhina.model.data.DbColumnType.UNKNOWN;
+
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class SchemaItem extends Label {
 
-    private DbColumn dbColumn;
+    static final String DATABASE_ICON_PATH = "common/icons/letter-d.png";
+    static final String TABLE_ICON_PATH = "common/icons/letter-t.png";
+    static final String COLUMN_ICON_PATH = "common/icons/letter-c.png";
+    static final String UNKNOWN_TYPE_COLUMN_ICON_PATH = "common/icons/letter-c-gray.png";
 
-    @SneakyThrows
     public SchemaItem(DbTable table) {
         super(table.getName());
-        InputStream tInput = new BufferedInputStream(new FileInputStream("common/icons/letter-t.png"));
-        Image tImage = new Image(tInput);
-        setGraphic(new ImageView(tImage));
+
+        setIcon(TABLE_ICON_PATH);
     }
 
-    @SneakyThrows
     public SchemaItem(DbColumn column) {
         super(column.getName());
-        dbColumn = column;
-        String iconPath = "common/icons/letter-c.png";
-        if (dbColumn.getType().equals(DbColumnType.UNKNOWN)) {
-            iconPath = "common/icons/letter-c-gray.png";
-        }
-        InputStream tInput = new BufferedInputStream(new FileInputStream(iconPath));
-        Image tImage = new Image(tInput);
-        setGraphic(new ImageView(tImage));
 
-        setOnMouseClicked(event -> {
-            if (event.getClickCount() >= 2) {
-                EventBus.sendEvent(new ColumnSelectedEvent(dbColumn));
-            }
-        });
+        String iconPath = column.getType().equals(UNKNOWN) ? UNKNOWN_TYPE_COLUMN_ICON_PATH : COLUMN_ICON_PATH;
+        setIcon(iconPath);
+    }
+
+    public SchemaItem(String databaseName) {
+        super(databaseName);
+
+        setIcon(DATABASE_ICON_PATH);
     }
 
     @SneakyThrows
-    public SchemaItem(String databaseName) {
-        super(databaseName);
-        InputStream tInput = new BufferedInputStream(new FileInputStream("common/icons/letter-d.png"));
+    private void setIcon(String iconPath) {
+        InputStream tInput = new BufferedInputStream(new FileInputStream(iconPath));
         Image tImage = new Image(tInput);
+
         setGraphic(new ImageView(tImage));
     }
 }

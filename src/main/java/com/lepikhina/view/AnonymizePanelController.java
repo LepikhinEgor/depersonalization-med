@@ -2,7 +2,7 @@ package com.lepikhina.view;
 
 import com.lepikhina.model.DatabaseService;
 import com.lepikhina.model.data.*;
-import com.lepikhina.model.events.*;
+import com.lepikhina.view.events.*;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

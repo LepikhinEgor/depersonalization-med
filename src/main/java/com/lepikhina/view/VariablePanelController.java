@@ -11,7 +11,11 @@ import java.util.ResourceBundle;
 import com.lepikhina.model.data.DepersonalizationColumn;
 import com.lepikhina.model.data.ScriptVariable;
 import com.lepikhina.model.data.VariableType;
+import lombok.AccessLevel;
+import lombok.Value;
+import lombok.experimental.FieldDefaults;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class VariablePanelController implements Initializable {
 
     @FXML

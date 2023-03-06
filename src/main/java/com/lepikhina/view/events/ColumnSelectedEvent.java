@@ -1,4 +1,4 @@
-package com.lepikhina.model.events;
+package com.lepikhina.view.events;
 
 import com.lepikhina.model.data.DbColumn;
 import lombok.Getter;

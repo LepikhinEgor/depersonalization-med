@@ -2,8 +2,8 @@ package com.lepikhina.view;
 
 import com.lepikhina.model.DatabaseService;
 import com.lepikhina.model.data.ConnectionsHolder;
-import com.lepikhina.model.events.DbConnectEvent;
-import com.lepikhina.model.events.EventBus;
+import com.lepikhina.view.events.DbConnectEvent;
+import com.lepikhina.view.events.EventBus;
 import com.lepikhina.model.persitstence.ConnectionPreset;
 import com.lepikhina.model.persitstence.PersistenceManager;
 import com.sun.javafx.collections.ObservableListWrapper;

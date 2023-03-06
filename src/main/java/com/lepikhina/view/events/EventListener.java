@@ -1,4 +1,4 @@
-package com.lepikhina.model.events;
+package com.lepikhina.view.events;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

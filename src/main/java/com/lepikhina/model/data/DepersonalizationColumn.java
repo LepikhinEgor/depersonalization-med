@@ -1,17 +1,13 @@
 package com.lepikhina.model.data;
 
-import javafx.event.EventType;
 import javafx.scene.control.ComboBox;
 
-import java.awt.event.InputEvent;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
-import com.lepikhina.model.events.ActionChangedEvent;
-import com.lepikhina.model.events.EventBus;
+import com.lepikhina.view.events.ActionChangedEvent;
+import com.lepikhina.view.events.EventBus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;

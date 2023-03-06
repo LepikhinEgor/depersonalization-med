@@ -2,7 +2,7 @@ package com.lepikhina.view;
 
 import com.lepikhina.model.DatabaseService;
 import com.lepikhina.model.data.*;
-import com.lepikhina.model.events.*;
+import com.lepikhina.view.events.*;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,9 +21,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class FillingPanelController implements Initializable {
-
-    @FXML
-    public TableView<DepersonalizationColumn> actionsTable;
 
     @FXML
     public TableColumn<DepersonalizationColumn, String> nameColumn;

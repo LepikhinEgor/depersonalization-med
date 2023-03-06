@@ -1,4 +1,4 @@
-package com.lepikhina.model.events;
+package com.lepikhina.view.events;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

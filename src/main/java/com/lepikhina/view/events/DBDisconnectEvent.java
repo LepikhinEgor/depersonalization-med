@@ -1,4 +1,4 @@
-package com.lepikhina.model.events;
+package com.lepikhina.view.events;
 
 public class DBDisconnectEvent extends AppEvent{
 
