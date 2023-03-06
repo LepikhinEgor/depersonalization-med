@@ -1,4 +1,4 @@
-package com.lepikhina;
+package com.lepikhina.view;
 
 import com.lepikhina.model.DatabaseService;
 import com.lepikhina.model.data.ConnectionsHolder;
@@ -22,7 +22,7 @@ import java.util.ResourceBundle;
 
 @Setter
 @Getter
-public class DbPropertiesController implements Initializable {
+public class ConnectionPresetController implements Initializable {
 
     @FXML
     ChoiceBox<ConnectionPreset> presetInput;

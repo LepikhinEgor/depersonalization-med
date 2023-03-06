@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="709.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.lepikhina.view.FillingPanelController">
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" prefHeight="55.0" prefWidth="700.0" BorderPane.alignment="CENTER">
+            <opaqueInsets>
+                <Insets/>
+            </opaqueInsets>
+            <Label prefHeight="18.0" prefWidth="66.0" text="Количество"/>
+            <TextField fx:id="newRowsCountInput" prefHeight="26.0" prefWidth="47.0" text="5"/>
+            <Separator opacity="0.0" prefWidth="20.0"/>
+            <Button mnemonicParsing="false" onAction="#executeFilling" prefHeight="31.0" prefWidth="160.0"
+                    text="Заполнить">
+                <opaqueInsets>
+                    <Insets/>
+                </opaqueInsets>
+            </Button>
+        </HBox>
+    </bottom>
+    <center>
+        <TableView fx:id="fillingTable" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <columns>
+                <TableColumn fx:id="nameColumn" minWidth="-Infinity" prefWidth="190.00000607967377" text="Название" />
+                <TableColumn fx:id="typeColumn" prefWidth="70.800048828125" text="Тип" />
+                <TableColumn fx:id="tableColumn" prefWidth="154.0" text="Таблица" />
+                <TableColumn fx:id="fillRequiredColumn" minWidth="0.0" prefWidth="87.79998779296875" text="Обязательное" />
+                <TableColumn fx:id="actionColumn" minWidth="0.0" prefWidth="196.59994506835938" text="Действие" />
+            </columns>
+        </TableView>
+    </center>
+</BorderPane>

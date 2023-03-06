@@ -1,4 +1,4 @@
-package com.lepikhina;
+package com.lepikhina.model;
 
 import javafx.event.EventType;
 import javafx.scene.control.Label;

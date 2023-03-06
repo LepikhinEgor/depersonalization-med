@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0"
+            prefWidth="1200.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.lepikhina.view.MainWindowController">
+    <top>
+        <MenuBar BorderPane.alignment="CENTER">
+            <menus>
+                <Menu mnemonicParsing="false" text="Подключение">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#openConnectionWindow" text="Подключиться к базе"/>
+                        <MenuItem mnemonicParsing="false" onAction="#sendDBDisconnectedEvent" text="Отключиться"/>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+    </top>
+    <center>
+        <SplitPane dividerPositions="0.2391304347826087, 0.5" prefHeight="160.0" prefWidth="200.0"
+                   BorderPane.alignment="CENTER">
+            <items>
+                <fx:include source="schema-tree-panel.fxml"/>
+                <AnchorPane minHeight="0.0" minWidth="700.0" prefHeight="160.0" prefWidth="100.0">
+                    <children>
+                        <TabPane prefHeight="740.0" prefWidth="699.0" tabClosingPolicy="UNAVAILABLE">
+                            <tabs>
+                                <Tab text="Обезличить">
+                                    <content>
+                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                            <children>
+                                                <fx:include source="anonymize-panel.fxml"/>
+                                            </children>
+                                        </AnchorPane>
+                                    </content>
+                                </Tab>
+                                <Tab text="Заполнить">
+                                    <content>
+                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                            <children>
+                                                <fx:include source="filling-panel.fxml"/>
+                                            </children>
+                                        </AnchorPane>
+                                    </content>
+                                </Tab>
+                            </tabs>
+                        </TabPane>
+                    </children>
+                </AnchorPane>
+                <AnchorPane layoutX="10.0" layoutY="10.0" minHeight="0.0" minWidth="250.0" prefHeight="473.0"
+                            prefWidth="100.0">
+                    <fx:include source="variables-panel.fxml"/>
+                </AnchorPane>
+            </items>
+        </SplitPane>
+    </center>
+</BorderPane>

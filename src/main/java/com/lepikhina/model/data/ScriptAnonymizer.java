@@ -1,6 +1,6 @@
 package com.lepikhina.model.data;
 
-import com.lepikhina.ScriptsExecutor;
+import com.lepikhina.model.ScriptsExecutor;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;

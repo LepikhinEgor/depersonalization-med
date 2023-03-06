@@ -1,4 +1,4 @@
-package com.lepikhina;
+package com.lepikhina.model;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;

@@ -1,4 +1,4 @@
-package com.lepikhina;
+package com.lepikhina.view;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;

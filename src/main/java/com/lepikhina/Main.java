@@ -13,7 +13,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        URL mainLocation = Objects.requireNonNull(getClass().getClassLoader().getResource("sample.fxml"));
+        URL mainLocation = Objects.requireNonNull(getClass().getClassLoader().getResource("main-window.fxml"));
         Parent root = FXMLLoader.load(mainLocation);
         primaryStage.setTitle("Обезличивание базы данных");
         primaryStage.setScene(new Scene(root));
