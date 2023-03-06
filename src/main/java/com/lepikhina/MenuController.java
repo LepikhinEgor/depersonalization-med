@@ -12,13 +12,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -58,6 +52,9 @@ public class MenuController implements Initializable {
     @FXML
     public TableView<DepersonalizationColumn> fillingTable;
     public TableColumn<DepersonalizationColumn, String> fillRequiredColumn;
+
+    @FXML
+    public TextField newRowsCountInput;
 
     public MenuController() {
         EventBus.getInstance().addListener(this);
@@ -262,7 +259,7 @@ public class MenuController implements Initializable {
     @FXML
     @SneakyThrows
     public void executeFilling(ActionEvent event) {
-        ObservableList<DepersonalizationColumn> rows = actionsTable.getItems();
+        ObservableList<DepersonalizationColumn> rows = fillingTable.getItems();
         DatabaseService databaseService = new DatabaseService();
 
         Map<DbTable, List<DepersonalizationColumn>> tableColumns = rows.stream()
@@ -271,13 +268,13 @@ public class MenuController implements Initializable {
         for (Map.Entry<DbTable, List<DepersonalizationColumn>> tableEntry : tableColumns.entrySet()) {
             DbTable table = tableEntry.getKey();
             List<DepersonalizationColumn> columns = tableEntry.getValue();
-            List<String> pkColumnKeys = new ArrayList<>(table.getPkColumnKeys());
 
             Map<DepersonalizationColumn, ScriptAnonymizer> columnsScripts = columns.stream()
                     .collect(Collectors.toMap(column -> column,
                             column -> new ScriptAnonymizer(column.getActionsBox().getValue().getScriptPath(), column.getVariables())));
 
-            databaseService.fillTable(columnsScripts, pkColumnKeys);
+            Integer newRowsCount = Integer.valueOf(newRowsCountInput.getText());
+            databaseService.fillTable(table.getName(), columnsScripts, newRowsCount);
         }
 
         actionsTable.refresh();

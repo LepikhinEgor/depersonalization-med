@@ -69,9 +69,9 @@
                                           <HBox alignment="CENTER_RIGHT" prefHeight="55.0" prefWidth="700.0" BorderPane.alignment="CENTER">
                                              <children>
                                                 <Label prefHeight="18.0" prefWidth="66.0" text="Количество" />
-                                                <TextField prefHeight="26.0" prefWidth="47.0" />
+                                                <TextField fx:id="newRowsCountInput" prefHeight="26.0" prefWidth="47.0" />
                                                 <Separator opacity="0.0" prefWidth="20.0" />
-                                                <Button mnemonicParsing="false" prefHeight="31.0" prefWidth="160.0" text="Заполнить">
+                                                <Button mnemonicParsing="false"  onAction="#executeFilling" prefHeight="31.0" prefWidth="160.0" text="Заполнить">
                                                    <opaqueInsets>
                                                       <Insets />
                                                    </opaqueInsets>

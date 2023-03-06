@@ -101,6 +101,19 @@
     "variables": []
   },
   {
+    "name": "Справочник",
+    "scriptPath": "common/scripts/text/dictionaryRandom.groovy",
+    "suitableType": "TEXT",
+    "variables": [
+      {
+        "name": "Значения(через запятую)",
+        "varName": "dictionary",
+        "type": "STRING",
+        "defaultValue": "Значение1,Значение2"
+      }
+    ]
+  },
+  {
     "name": "Значение",
     "scriptPath": "common/scripts/number/value.groovy",
     "suitableType": "NUMBER",
@@ -199,5 +212,11 @@
         "type": "FLOAT",
         "defaultValue": 10.0
       }]
+  },
+  {
+    "name": "Текущее время",
+    "scriptPath": "common/scripts/dateType/now.groovy",
+    "suitableType": "DATE",
+    "variables": []
   }
 ]

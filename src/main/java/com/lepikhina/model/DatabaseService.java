@@ -87,7 +87,7 @@ public class DatabaseService {
     }
 
     public <T> void fillTable(String tableName,
-            Map<DepersonalizationColumn, ScriptAnonymizer> columnsScripts,
+                              Map<DepersonalizationColumn, ScriptAnonymizer> columnsScripts,
                               Integer count) throws DatabaseConnectException, SQLException {
 
 
@@ -100,10 +100,11 @@ public class DatabaseService {
                         .collect(Collectors.toMap(Map.Entry::getKey, t -> t.getValue().generate(BATCH_SIZE)));
 
                 List<NewTableRow> newTableRows = new ArrayList<>();
-                for (int i = 0; i < BATCH_SIZE; i++) {
+                int newRowsCount = count - offset > BATCH_SIZE ? BATCH_SIZE : count - offset;
+                for (int i = 0; i < newRowsCount; i++) {
                     NewTableRow newTableRow = new NewTableRow(new HashMap<>());
                     for (Map.Entry<DepersonalizationColumn, List<TableRow<T>>> columnItems : columnItemList.entrySet()) {
-                        newTableRow.getColumns().put(columnItems.getKey().getName(), columnItems.getValue().get(i));
+                        newTableRow.getColumns().put(columnItems.getKey().getName(), columnItems.getValue().get(i).getValue());
                     }
 
                     newTableRows.add(newTableRow);
@@ -223,12 +224,15 @@ public class DatabaseService {
     private <T> void insertRows(String tableName,
                                 List<NewTableRow> newTableRows,
                                 Connection connection) throws DatabaseConnectException, SQLException {
-        String query = generateInsertRowQuery(newTableRows, tableName);
+        String query = generateInsertRowQuery(newTableRows.get(0), tableName);
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            for (TableRow<T> value : values) {
-                statement.setObject(1, value.getValue());
-                for (int i = 0; i < idColumns.size(); i++) {
-                    statement.setObject(i + 2, value.getIds().get(i));
+
+            for (NewTableRow row : newTableRows) {
+                ArrayList<Map.Entry<String, Object>> fieldValues = new ArrayList<>(row.getColumns().entrySet());
+                fieldValues.sort(Map.Entry.comparingByKey());
+
+                for (int i = 1; i < fieldValues.size() + 1; i++) {
+                    statement.setObject(i, fieldValues.get(i-1).getValue());
                 }
 
                 statement.addBatch();
@@ -236,14 +240,7 @@ public class DatabaseService {
 
             int[] results = statement.executeBatch();
 
-            for (int i = 0; i < results.length; i++) {
-                if (results[i] == 0) {
-                    String ids = values.get(i).getIds().stream()
-                            .map(Object::toString)
-                            .collect(Collectors.joining(","));
-                    System.out.println("Row with id=" + ids + " not found");
-                }
-            }
+            System.out.println("Updated " + results.length + " rows");
         }
     }
 
@@ -258,15 +255,19 @@ public class DatabaseService {
         return joiner.toString();
     }
 
-    private String generateInsertRowQuery(List<NewTableRow> newTableRows, String tableName) {
-        String prefix = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE ";
+    private String generateInsertRowQuery(NewTableRow newTableRow, String tableName) {
+        StringJoiner fieldsJoiner = new StringJoiner(",", "(", ")");
+        StringJoiner valuesJoiner = new StringJoiner(",", "(", ")");
 
-        if (idColumns.size() == 1)
-            return prefix + idColumns.get(0) + "= ?;";
-        StringJoiner joiner = new StringJoiner("= ? AND ", prefix, ";");
-        idColumns.forEach(joiner::add);
+        ArrayList<String> fields = new ArrayList<>(newTableRow.getColumns().keySet());
+        fields.sort(String::compareTo);
+        for (String field : fields) {
+            fieldsJoiner.add(field);
+            valuesJoiner.add("?");
+        }
 
-        return joiner.toString();
+
+        return "INSERT INTO " + tableName + " " + fieldsJoiner.toString() + " VALUES " + valuesJoiner.toString() + ";";
     }
 
     private Set<DbColumn> getTableColumns(DbTable table) throws SQLException, DatabaseConnectException {
